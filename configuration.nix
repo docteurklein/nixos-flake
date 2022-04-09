@@ -1,7 +1,6 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
 
   imports = [
-    ./services/nixos-auto-update.nix
   ];
 
   fileSystems."/" = { options = [ "noatime" "nodiratime" ]; };
@@ -11,6 +10,7 @@
     loader = {
       grub = {
         enable = true;
+        configurationLimit = 10;
         version = 2;
         efiSupport = false;
         enableCryptodisk = true;
@@ -26,11 +26,13 @@
   };
 
   networking = {
-    useDHCP = true;
     hostName = "florian-desktop";
+    useDHCP = false;
+    interfaces.enp3s0.useDHCP = true;
+    enableIPv6 = true;
     firewall = {
       enable = true;
-      allowedTCPPorts = [ 80 443 2022 ];
+      allowedTCPPorts = [ 80 443 22 8080 8081 ];
       allowedUDPPorts = [ 53 ];
       allowPing = true;
     };
@@ -57,7 +59,7 @@
   };
 
   services = {
-    nixos-auto-update.enable = false;
+    #nixos-auto-update.enable = false;
     logrotate = {
       enable = true;
       extraConfig = ''
@@ -76,9 +78,10 @@
       permitRootLogin = "no";
       passwordAuthentication = false;
       forwardX11 = true;
-      ports = [ 2022 ];
+      ports = [ 22 ];
     };
     xserver = {
+        videoDrivers = [ "nvidia" ];
         enable = true;
         desktopManager = {
             xterm.enable = false;
@@ -91,6 +94,7 @@
             extraPackages = with pkgs; [
                 rofi
                 i3status
+                i3blocks
             ];
         };
         layout = "fr";
@@ -108,8 +112,17 @@
       # no need to redefine it in your config for now)
       #media-session.enable = true;
     };
-
+    postgresql = {
+      enable = true;
+      package = pkgs.postgresql_14;
+      extraPlugins = [
+        #pkgs.pg_ivm
+      ]; 
+    };
   };
+
+  hardware.opengl.enable = true;
+  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
 
   virtualisation = {
     docker = {
@@ -136,27 +149,43 @@
       uid = 1000;
       # mkpasswd -m sha-512 password
       hashedPassword = "$6$Qxe1C3WtH06$Tl9DzDcMqtuhASktIm.raH/cICBkcquiBYhB./ZhmC6S6IeBmT3uhIBX6dNNXa46GQJDt9hhHF1sCy25fAnfD.";
+      openssh.authorizedKeys.keys = [
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNFd+owyL4UYCZM9PqJnl2Z6SMeBQQmZdi09tXCTgzLxWL1LnLyB45GoDLSt9PWkcy8+Dhk3SU1JRI32rwXdpPSCGXYETLvrxGKyZ7ySxl+tdVcdOawOvb5MC3+258SDK8b2Fz0pDCZAUl8NYyDv27efO4m2JH27DWoCOMk3DezAk+itLzNeRh61LJd/9+H7ZvqyXDjSdS12GlfVGs4MFAALq5zZXX76dh4Xs21XC6IwZK7Dq8NE0WARJT8OL8IT+tTcs0qoQDNBd+eb4Llxe7pRcnM/Pd9Wo0ceKGdjfIiOKRaFN6Q7WzI+l+fVdHa4vFHQVxOOydmD2F0jVIzXoT florian@florian"
+      ];
       packages = with pkgs; [
-        firefox-bin
-        alacritty
-        docker-compose
       ];
     };
   };
-
+  documentation = {
+    man.enable = false;
+  };
   programs = {
+    steam.enable = true;
     ssh.startAgent = false;
-    vim.defaultEditor = true;
     fish.enable = true;
+    tmux = {
+      enable = true;
+      keyMode = "vi";
+      historyLimit = 50000;
+      extraConfig = builtins.readFile ./conf/tmux.conf;
+    };
   };
 
   environment = {
+    variables = {
+      EDITOR = "vim";
+    };
     pathsToLink = ["/libexec"];
     systemPackages = with pkgs; [
       git
       inotify-tools
       binutils
       gnutls
+      gnumake
+      firefox-bin
+      alacritty
+      docker-compose
+      gcc
       wget
       curl
       bind
@@ -164,8 +193,33 @@
       cachix
       tmux
       dmidecode
-      vim
+      ((vim_configurable.override { python = python3; }).customize {
+        name = "vim";
+        vimrcConfig = {
+          customRC = builtins.readFile ./conf/vimrc;
+        };
+        vimrcConfig.packages.myVimPackage = with vimPlugins; {
+          start = [
+            jellybeans-vim
+            vim-airline
+            fugitive
+            ctrlp-vim
+            tabular
+            vim-surround
+            vim-lsp
+            fzf-vim
+          ];
+        };
+      })
+      fd
+      ripgrep
       socat
+      google-cloud-sdk
+      kubectl
+      kubectx
+      k9s
+      xdot
+      graphviz
     ];
 
     shellAliases = {
@@ -177,6 +231,17 @@
       dcr = "docker-compose run --rm";
       dce = "docker-compose exec --rm";
       v = "vim";
+      g = "git";
+      gc = "git commit";
+      gd = "git diff";
+      gs = "git status";
+      gr = "git restore";
+      grs = "git restore --staged";
+      k = "kubectl";
+      kg = "kubectl get";
+      kd = "kubectl describe";
+      kl = "kubectl logs --tail=1 -f";
+      ks = "kubectl config set-context --current --namespace";
     };
   };
 
@@ -184,6 +249,9 @@
     config = {
       allowBroken = true;
       allowUnfree = true;
+      packageOverrides = pkgs: with pkgs; {
+        #pg_ivm = pkgs.callPackage ./pg_ivm.nix {};
+      };
     };
   };
 
@@ -208,18 +276,12 @@
       automatic = true;
       dates = [ "weekly" ];
     };
-    /*    binaryCaches = [
-      "https://matrix.cachix.org"
-      ];
-      binaryCachePublicKeys = [
-      "matrix.cachix.org-1:h2ZM1LtvJBQhCb7a2Z/UpO8PKKIUlIvifvrFKfnHkro="
-      ];*/
   };
   system = {
-    stateVersion = "21.05"; # Did you read the comment?
+    stateVersion = "21.11"; # Did you read the comment?
     autoUpgrade = {
       enable = false;
-      allowReboot = true;
+      allowReboot = false;
       flake = "github:docteurklein/nixos-flake";
       flags = [
         "--recreate-lock-file"
