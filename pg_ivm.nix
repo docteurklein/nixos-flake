@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
   makeFlags = [ "USE_PGXS=1" ];
 
   installPhase = ''
-    install -D -t $out/lib *.so
+    install -D -t $out/lib *.so 
     install -D -t $out/share/postgresql/extension *.sql
     install -D -t $out/share/postgresql/extension *.control
   '';
