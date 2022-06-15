@@ -10,7 +10,7 @@ export ROOT_DISK=/dev/sdb
 wipefs -a $ROOT_DISK
 ```
 
-## Diff install Optional
+## partition disk
 
 ```sh
 
@@ -46,7 +46,7 @@ lvcreate -l '100%FREE' -n root vg
 lvdisplay
 ```
 
-## Format Disks
+## Format partitions
 
 ```sh
 mkfs.ext2 -L boot /dev/disk/by-partlabel/boot
