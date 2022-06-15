@@ -1,6 +1,4 @@
-# Install NIxOS from flakes
-
-# NixOs LUKS PV Home Manager Flake deployment
+# personal nix setup
 
 ## Prep Disk
 
