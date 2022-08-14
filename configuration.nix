@@ -107,7 +107,6 @@
       pulse.enable = true;
       # If you want to use JACK applications, uncomment this
       #jack.enable = true;
-    
       # use the example session manager (no others are packaged yet so this is enabled by default,
       # no need to redefine it in your config for now)
       #media-session.enable = true;
@@ -174,9 +173,15 @@
   environment = {
     variables = {
       EDITOR = "vim";
+      LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
     };
-    pathsToLink = ["/libexec"];
+    pathsToLink = [
+      "/libexec"
+      "/share/nix-direnv"
+    ];
     systemPackages = with pkgs; [
+      direnv
+      nix-direnv
       git
       inotify-tools
       binutils
@@ -217,9 +222,13 @@
       google-cloud-sdk
       kubectl
       kubectx
+      kubernetes-helm
       k9s
       xdot
       graphviz
+      cargo
+      cargo-pgx
+      libclang.lib
     ];
 
     shellAliases = {
@@ -246,11 +255,17 @@
   };
 
   nixpkgs = {
+    overlays = [
+      (self: super: {
+        nix-direnv = super.nix-direnv.override { enableFlakes = true; };
+      })
+    ];
     config = {
       allowBroken = true;
       allowUnfree = true;
       packageOverrides = pkgs: with pkgs; {
         #pg_ivm = pkgs.callPackage ./pg_ivm.nix {};
+        #postgres = pkgs.callPackage ./pg_ivm.nix {};
       };
     };
   };
