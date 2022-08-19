@@ -59,7 +59,6 @@
   };
 
   services = {
-    #nixos-auto-update.enable = false;
     logrotate = {
       enable = true;
       extraConfig = ''
@@ -121,7 +120,7 @@
   };
 
   hardware.opengl.enable = true;
-  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
+  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
 
   virtualisation = {
     docker = {
@@ -198,7 +197,7 @@
       cachix
       tmux
       dmidecode
-      ((vim_configurable.override { python = python3; }).customize {
+      ((vim_configurable.override { }).customize {
         name = "vim";
         vimrcConfig = {
           customRC = builtins.readFile ./conf/vimrc;
@@ -227,7 +226,6 @@
       xdot
       graphviz
       cargo
-      cargo-pgx
       libclang.lib
     ];
 
@@ -292,10 +290,11 @@
       dates = [ "weekly" ];
     };
   };
+
   system = {
-    stateVersion = "21.11"; # Did you read the comment?
+    stateVersion = "22.05"; # Did you read the comment?
     autoUpgrade = {
-      enable = false;
+      enable = true;
       allowReboot = false;
       flake = "github:docteurklein/nixos-flake";
       flags = [
