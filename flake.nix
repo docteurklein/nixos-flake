@@ -3,17 +3,17 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-22.05";
-    pgx.url = "github:tcdi/pgx";
+    #pgx.url = "github:tcdi/pgx";
   };
 
-  outputs = { nixpkgs, pgx, ... }: {
+  outputs = { nixpkgs, ... }: {
     nixosConfigurations = {
       default = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ({ config, pkgs, ... }:
             {
-              nixpkgs.overlays = [pgx.overlay];
+              #nixpkgs.overlays = [pgx.overlay];
               nix = {
                 binaryCaches = [
                   "https://cache.nixos.org"

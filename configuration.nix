@@ -98,6 +98,8 @@
         };
         layout = "fr";
         xkbVariant = "bepo";
+        autoRepeatDelay = 190;
+        autoRepeatInterval = 80;
     };
     pipewire = {
       enable = true;
@@ -173,6 +175,7 @@
     variables = {
       EDITOR = "vim";
       LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
+      LESS = "-SRXFi";
     };
     pathsToLink = [
       "/libexec"
@@ -187,6 +190,7 @@
       gnutls
       gnumake
       firefox-bin
+      stremio
       alacritty
       docker-compose
       gcc
@@ -243,10 +247,13 @@
       gd = "git diff";
       gs = "git status";
       gr = "git restore";
+      gpr = "git pull --rebase";
       grs = "git restore --staged";
+      gph = "git push --force-with-lease";
       k = "kubectl";
       kg = "kubectl get";
       kd = "kubectl describe";
+      ke = "kubectl exec -it";
       kl = "kubectl logs --tail=1 -f";
       ks = "kubectl config set-context --current --namespace";
     };
@@ -296,13 +303,12 @@
     autoUpgrade = {
       enable = true;
       allowReboot = false;
-      flake = "github:docteurklein/nixos-flake";
+      flake = "/etc/nixos#default";
       flags = [
         "--recreate-lock-file"
-        "--no-write-lock-file"
         "-L" # print build logs
       ];
-      dates = "daily";
+      dates = "monthly";
     };
   };
 }
