@@ -1,9 +1,17 @@
 { config, pkgs, lib, ... }: {
 
-  imports = [
-  ];
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/root";
+    fsType = "ext4";
+    options = [ "noatime" "nodiratime" ]; 
+  };
 
-  fileSystems."/" = { options = [ "noatime" "nodiratime" ]; };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-partlabel/boot";
+    fsType = "ext2";
+  };
+
+  swapDevices = [{ device = "/dev/disk/by-label/swap"; }];
 
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
@@ -17,6 +25,10 @@
         device = "/dev/sdb";
       };
     };
+    extraModulePackages = [ ];
+    kernelModules = [ "dm-snapshot" ];
+    initrd.kernelModules = [ "dm-snapshot" ];
+    initrd.availableKernelModules = [ ];
     initrd.luks.devices = {
       crypt = {
         device = "/dev/sdb2";
@@ -61,16 +73,6 @@
   services = {
     logrotate = {
       enable = true;
-      extraConfig = ''
-        compress
-        create
-        daily
-        dateext
-        delaycompress
-        missingok
-        notifempty
-        rotate 31
-      '';
     };
     openssh = {
       enable = true;
@@ -231,6 +233,7 @@
       graphviz
       cargo
       libclang.lib
+
     ];
 
     shellAliases = {
@@ -277,11 +280,14 @@
 
   nix = {
     package = pkgs.nixFlakes;
-    useSandbox = true;
-    autoOptimiseStore = true;
+    settings = {
+      max-jobs = lib.mkDefault 4;
+      sandbox = true;
+      trusted-users = [ "@wheel" ];
+      allowed-users = [ "@wheel" ];
+      auto-optimise-store = true;
+    };
     readOnlyStore = false;
-    allowedUsers = [ "@wheel" ];
-    trustedUsers = [ "@wheel" ];
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
