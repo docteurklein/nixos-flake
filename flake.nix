@@ -14,14 +14,14 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # nixinate = {
-    #   url = "github:matthewcroughan/nixinate";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    nixinate = {
+      url = "github:matthewcroughan/nixinate";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-generators, disko, nixinate, ... }@attrs: {
-    # apps = nixinate.nixinate.x86_64-linux self;
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-generators, disko, nixinate, ... }@attrs: {
+    apps = nixinate.nixinate.x86_64-linux self;
     nixosConfigurations = {
       "florian-desktop" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -32,11 +32,13 @@
               ./configuration.nix
             ];
             networking.hostName = "florian-desktop";
+            networking.interfaces.enp3s0.useDHCP = true;
             console.keyMap = "fr-bepo";
+            services.xserver.layout = "fr";
             services.xserver.xkbVariant = "bepo";
             services.xserver.videoDrivers = [ "nvidia" ];
             hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
-            services.xserver.layout = "fr";
+
             fileSystems."/" = {
               device = "/dev/disk/by-label/root";
               fsType = "ext4";
@@ -65,7 +67,7 @@
         specialArgs = attrs;
         modules = [
           disko.nixosModules.disko
-          ({ config, pkgs, modulesPath, ... }: {
+          ({ config, pkgs, nixpkgs-unstable, modulesPath, ... }: {
             imports = [
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
@@ -74,10 +76,36 @@
 
             nix.registry = {
               nixpkgs.flake = nixpkgs;
+              # nixpkgs-unstable.flake = nixpkgs-unstable;
             };
+            environment.systemPackages = [ nixpkgs-unstable.legacyPackages."x86_64-linux".yewtube ];
             networking.hostName = "florian-laptop";
+            networking.interfaces.enp1s0.useDHCP = true;
+            networking.interfaces.wlp2s0b1.useDHCP = true;
+            networking.wireless.enable = true;
+            networking.wireless.userControlled.enable = true;
+            networking.wireless.networks = {
+              "Livebox-9500" = {
+              };
+            };
             console.keyMap = "fr";
             services.xserver.layout = "fr";
+            services.xserver.libinput = { enable = true; };
+            services.xserver.videoDrivers = [ "intel" ];
+
+            nixpkgs.config.packageOverrides = pkgs: {
+              vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+            };
+            hardware.opengl = {
+              enable = true;
+              extraPackages = with pkgs; [
+                intel-media-driver # LIBVA_DRIVER_NAME=iHD
+                vaapiIntel         # LIBVA_DRIVER_NAME=i965 (older but works better for Firefox/Chromium)
+                vaapiVdpau
+                libvdpau-va-gl
+              ];
+            };
+
             boot.loader.grub.device = "/dev/sda";
             disko.devices.disk.sda = {
               type = "disk";
@@ -120,15 +148,15 @@
               };
             };
           })
-          # {
-          #   _module.args.nixinate = {
-          #     host = "192.168.1.14";
-          #     sshUser = "root";
-          #     buildOn = "local"; # valid args are "local" or "remote"
-          #     substituteOnTarget = false; # if buildOn is "local" then it will substitute on the target, "-s"
-          #     hermetic = false;
-          #   };
-          # }
+          {
+            _module.args.nixinate = {
+              host = "192.168.1.15";
+              sshUser = "florian";
+              buildOn = "local"; # valid args are "local" or "remote"
+              substituteOnTarget = true; # if buildOn is "local" then it will substitute on the target, "-s"
+              hermetic = false;
+            };
+          }
         ];
       };
     };
