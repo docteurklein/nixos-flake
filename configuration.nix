@@ -1,18 +1,4 @@
 { config, pkgs, lib, ... }: {
-
-  fileSystems."/" = {
-    device = "/dev/disk/by-label/root";
-    fsType = "ext4";
-    options = [ "noatime" "nodiratime" ]; 
-  };
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-partlabel/boot";
-    fsType = "ext2";
-  };
-
-  swapDevices = [{ device = "/dev/disk/by-label/swap"; }];
-
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
     loader = {
@@ -22,23 +8,15 @@
         version = 2;
         efiSupport = false;
         enableCryptodisk = true;
-        device = "/dev/sdb";
       };
     };
     extraModulePackages = [ ];
     kernelModules = [ "dm-snapshot" ];
     initrd.kernelModules = [ "dm-snapshot" ];
     initrd.availableKernelModules = [ ];
-    initrd.luks.devices = {
-      crypt = {
-        device = "/dev/sdb2";
-        preLVM = true;
-      };
-    };
   };
 
   networking = {
-    hostName = "florian-desktop";
     useDHCP = false;
     interfaces.enp3s0.useDHCP = true;
     enableIPv6 = true;
@@ -59,7 +37,6 @@
 
   console = {
     font = "Lat2-Terminus16";
-    keyMap = "fr-bepo";
   };
 
   fonts = {
@@ -82,7 +59,6 @@
       ports = [ 22 ];
     };
     xserver = {
-        videoDrivers = [ "nvidia" ];
         enable = true;
         desktopManager = {
             xterm.enable = false;
@@ -98,8 +74,6 @@
                 i3blocks
             ];
         };
-        layout = "fr";
-        xkbVariant = "bepo";
         autoRepeatDelay = 190;
         autoRepeatInterval = 80;
     };
@@ -116,15 +90,22 @@
     };
     postgresql = {
       enable = true;
-      package = pkgs.postgresql_14;
+      package = pkgs.postgresql_15;
       extraPlugins = [
         #pkgs.pg_ivm
-      ]; 
+      ];
+      settings = {
+        log_connections = true;
+        log_statement = "all";
+        logging_collector = true;
+        log_disconnections = true;
+        log_destination = lib.mkForce "syslog";
+      };
     };
   };
 
   hardware.opengl.enable = true;
-  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
+  #hardware.nvidia.open = true;
 
   virtualisation = {
     docker = {
@@ -169,7 +150,7 @@
       enable = true;
       keyMode = "vi";
       historyLimit = 50000;
-      extraConfig = builtins.readFile ./conf/tmux.conf;
+      extraConfig = builtins.readFile ./dotfiles/tmux.conf;
     };
   };
 
@@ -184,6 +165,7 @@
       "/share/nix-direnv"
     ];
     systemPackages = with pkgs; [
+      man
       direnv
       nix-direnv
       git
@@ -203,10 +185,11 @@
       cachix
       tmux
       dmidecode
+      helix
       ((vim_configurable.override { }).customize {
         name = "vim";
         vimrcConfig = {
-          customRC = builtins.readFile ./conf/vimrc;
+          customRC = builtins.readFile ./dotfiles/vimrc;
         };
         vimrcConfig.packages.myVimPackage = with vimPlugins; {
           start = [
@@ -231,9 +214,9 @@
       k9s
       xdot
       graphviz
-      cargo
       libclang.lib
-
+      pavucontrol
+      vlc
     ];
 
     shellAliases = {
@@ -279,7 +262,17 @@
   };
 
   nix = {
+    settings = {
+      substituters = [
+        "https://cache.nixos.org"
+        "https://nix-community.cachix.org"
+      ];
+      trusted-public-keys = [
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      ];
+    };
     package = pkgs.nixFlakes;
+
     settings = {
       max-jobs = lib.mkDefault 4;
       sandbox = true;
@@ -305,7 +298,7 @@
   };
 
   system = {
-    stateVersion = "22.05"; # Did you read the comment?
+    stateVersion = "22.11"; # Did you read the comment?
     autoUpgrade = {
       enable = true;
       allowReboot = false;
@@ -314,7 +307,7 @@
         "--recreate-lock-file"
         "-L" # print build logs
       ];
-      dates = "monthly";
+      dates = "weekly";
     };
   };
 }
