@@ -66,11 +66,11 @@
         system = "x86_64-linux";
         specialArgs = attrs;
         modules = [
-          disko.nixosModules.disko
           ({ config, pkgs, nixpkgs-unstable, modulesPath, ... }: {
             imports = [
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
+              disko.nixosModules.disko
               ./configuration.nix
             ];
 
@@ -122,8 +122,8 @@
                     flags = [ "bios_grub" ];
                   }
                   {
-                    type = "partition";
                     name = "ESP";
+                    type = "partition";
                     start = "1M";
                     end = "512M";
                     bootable = true;
@@ -134,8 +134,8 @@
                     };
                   }
                   {
-                    type = "partition";
                     name = "root";
+                    type = "partition";
                     start = "512M";
                     end = "100%";
                     content = {
@@ -153,6 +153,139 @@
               host = "192.168.1.15";
               sshUser = "florian";
               buildOn = "local"; # valid args are "local" or "remote"
+              substituteOnTarget = true; # if buildOn is "local" then it will substitute on the target, "-s"
+              hermetic = false;
+            };
+          }
+        ];
+      };
+      "florian-work-laptop" = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = attrs;
+        modules = [
+          ({ config, pkgs, nixpkgs-unstable, modulesPath, ... }: {
+            imports = [
+              (modulesPath + "/installer/scan/not-detected.nix")
+              (modulesPath + "/profiles/qemu-guest.nix")
+              disko.nixosModules.disko
+              ./configuration.nix
+            ];
+
+            nix.registry = {
+              nixpkgs.flake = nixpkgs;
+              # nixpkgs-unstable.flake = nixpkgs-unstable;
+            };
+            environment.systemPackages = with nixpkgs-unstable.legacyPackages."x86_64-linux"; [
+              fusionInventory
+            ];
+            networking.hostName = "florian-work-laptop";
+            #networking.interfaces.enp1s0.useDHCP = true;
+            networking.interfaces.wlp58s0.useDHCP = true;
+            networking.wireless.enable = true;
+            networking.wireless.userControlled.enable = true;
+            networking.wireless.networks = {
+              "Livebox-9500" = {
+              };
+            };
+            console.keyMap = "fr";
+            services.xserver.layout = "fr";
+            services.xserver.libinput = { enable = true; };
+            services.xserver.videoDrivers = [ "intel" ];
+
+            nixpkgs.config.packageOverrides = pkgs: {
+              vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+            };
+            hardware.opengl = {
+              enable = true;
+              extraPackages = with pkgs; [
+                intel-media-driver
+                vaapiIntel
+                vaapiVdpau
+                libvdpau-va-gl
+              ];
+            };
+
+            boot.loader.grub.device = "/dev/nvme0n1";
+            disko.devices = {
+              disk.nvme0n1 = {
+                type = "disk";
+                device = "/dev/nvme0n1";
+                content = {
+                  type = "table";
+                  format = "gpt";
+                  partitions = [
+                    {
+                      name = "boot";
+                      type = "partition";
+                      start = "0";
+                      end = "1M";
+                      part-type = "primary";
+                      flags = [ "bios_grub" ];
+                    }
+                    {
+                      name = "ESP";
+                      type = "partition";
+                      start = "1MiB";
+                      end = "100MiB";
+                      bootable = true;
+                      content = {
+                        type = "filesystem";
+                        format = "vfat";
+                        mountpoint = "/boot";
+                        mountOptions = [
+                          "defaults"
+                        ];
+                      };
+                    }
+                    {
+                      name = "root";
+                      type = "partition";
+                      start = "100MiB";
+                      end = "100%";
+                      part-type = "primary";
+                      bootable = true;
+                      content = {
+                        type = "luks";
+                        name = "crypted";
+                        extraOpenArgs = [ "--allow-discards" ];
+                        keyFile = "/tmp/secret.key";
+                        content = {
+                          type = "lvm_pv";
+                          vg = "pool";
+                        };
+                      };
+                    }
+                  ];
+                };
+              };
+              lvm_vg = {
+                pool = {
+                  type = "lvm_vg";
+                  lvs = {
+                    root = {
+                      type = "lvm_lv";
+                      size = "100%FREE";
+                      content = {
+                        type = "filesystem";
+                        format = "ext4";
+                        mountpoint = "/";
+                        mountOptions = [
+                          "defaults"
+                          "noatime"
+                          "nodiratime"
+                        ];
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          })
+          {
+            _module.args.nixinate = {
+              host = "192.168.1.16";
+              sshUser = "florian";
+              buildOn = "remote"; # valid args are "local" or "remote"
               substituteOnTarget = true; # if buildOn is "local" then it will substitute on the target, "-s"
               hermetic = false;
             };

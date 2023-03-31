@@ -1,18 +1,20 @@
 { config, pkgs, lib, ... }: {
   boot = {
+    kernelParams = [ "boot.shell_on_fail" ]; 
     kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       grub = {
         enable = true;
         configurationLimit = 10;
         version = 2;
-        efiSupport = false;
+        efiSupport = true;
+        efiInstallAsRemovable = true;
         enableCryptodisk = true;
       };
     };
     extraModulePackages = [ ];
-    kernelModules = [ "dm-snapshot" ];
-    initrd.kernelModules = [ "dm-snapshot" ];
+    kernelModules = [ "dm-snapshot" "uas" ];
+    initrd.kernelModules = [ "dm-snapshot" "uas" ];
     initrd.availableKernelModules = [ ];
   };
 
