@@ -18,9 +18,10 @@
       url = "github:matthewcroughan/nixinate";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-generators, disko, nixinate, ... }@attrs: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, disko, nixinate, ... }@attrs: {
     apps = nixinate.nixinate.x86_64-linux self;
     nixosConfigurations = {
       "florian-desktop" = nixpkgs.lib.nixosSystem {
@@ -168,6 +169,7 @@
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
               disko.nixosModules.disko
+              nixos-hardware.nixosModules.dell-xps-13-9310
               ./configuration.nix
             ];
 
@@ -187,6 +189,7 @@
               "Livebox-9500" = {
               };
             };
+            hardware.bluetooth.enable = true;
             console.keyMap = "fr";
             services.xserver.layout = "fr";
             services.xserver.libinput = { enable = true; };
