@@ -205,6 +205,9 @@
               ];
             };
 
+            boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
+            boot.kernelModules = [ "kvm-intel" ];
+
             boot.loader.grub.device = "/dev/nvme0n1";
             disko.devices = {
               disk.nvme0n1 = {
@@ -239,50 +242,45 @@
                       start = "512M";
                       end = "100%";
                       content = {
-                        type = "filesystem";
-                        format = "ext4";
-                        mountpoint = "/";
+                        type = "luks";
+                        name = "crypted";
+                        extraOpenArgs = [ "--allow-discards" ];
+                        keyFile = "/tmp/secret.key";
+                        content = {
+                          type = "lvm_pv";
+                          vg = "pool";
+                        };
                       };
-                      #content = {
-                      #  type = "luks";
-                      #  name = "crypted";
-                      #  extraOpenArgs = [ "--allow-discards" ];
-                      #  keyFile = "/tmp/secret.key";
-                      #  content = {
-                      #    type = "lvm_pv";
-                      #    vg = "pool";
-                      #  };
-                      #};
                     }
                   ];
                 };
               };
-              #lvm_vg = {
-              #  pool = {
-              #    type = "lvm_vg";
-              #    lvs = {
-              #      root = {
-              #        type = "lvm_lv";
-              #        size = "100%FREE";
-              #        content = {
-              #          type = "filesystem";
-              #          format = "ext4";
-              #          mountpoint = "/";
-              #          mountOptions = [
-              #            "defaults"
-              #            "noatime"
-              #            "nodiratime"
-              #          ];
-              #        };
-              #      };
-              #    };
-              #  };
-              #};
+              lvm_vg = {
+                pool = {
+                  type = "lvm_vg";
+                  lvs = {
+                    root = {
+                      type = "lvm_lv";
+                      size = "100%FREE";
+                      content = {
+                        type = "filesystem";
+                        format = "ext4";
+                        mountpoint = "/";
+                        mountOptions = [
+                          "defaults"
+                          "noatime"
+                          "nodiratime"
+                        ];
+                      };
+                    };
+                  };
+                };
+              };
             };
           })
           {
             _module.args.nixinate = {
-              host = "192.168.1.16";
+              host = "192.168.1.10";
               sshUser = "florian";
               buildOn = "remote"; # valid args are "local" or "remote"
               substituteOnTarget = true; # if buildOn is "local" then it will substitute on the target, "-s"
