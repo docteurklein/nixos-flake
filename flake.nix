@@ -219,66 +219,65 @@
                       type = "partition";
                       start = "0";
                       end = "1M";
-                      part-type = "primary";
                       flags = [ "bios_grub" ];
                     }
                     {
                       name = "ESP";
                       type = "partition";
-                      start = "1MiB";
-                      end = "100MiB";
+                      start = "1M";
+                      end = "512M";
                       bootable = true;
                       content = {
                         type = "filesystem";
                         format = "vfat";
                         mountpoint = "/boot";
-                        mountOptions = [
-                          "defaults"
-                        ];
                       };
                     }
                     {
                       name = "root";
                       type = "partition";
-                      start = "100MiB";
+                      start = "512M";
                       end = "100%";
-                      part-type = "primary";
-                      bootable = true;
-                      content = {
-                        type = "luks";
-                        name = "crypted";
-                        extraOpenArgs = [ "--allow-discards" ];
-                        keyFile = "/tmp/secret.key";
-                        content = {
-                          type = "lvm_pv";
-                          vg = "pool";
-                        };
-                      };
-                    }
-                  ];
-                };
-              };
-              lvm_vg = {
-                pool = {
-                  type = "lvm_vg";
-                  lvs = {
-                    root = {
-                      type = "lvm_lv";
-                      size = "100%FREE";
                       content = {
                         type = "filesystem";
                         format = "ext4";
                         mountpoint = "/";
-                        mountOptions = [
-                          "defaults"
-                          "noatime"
-                          "nodiratime"
-                        ];
                       };
-                    };
-                  };
+                      #content = {
+                      #  type = "luks";
+                      #  name = "crypted";
+                      #  extraOpenArgs = [ "--allow-discards" ];
+                      #  keyFile = "/tmp/secret.key";
+                      #  content = {
+                      #    type = "lvm_pv";
+                      #    vg = "pool";
+                      #  };
+                      #};
+                    }
+                  ];
                 };
               };
+              #lvm_vg = {
+              #  pool = {
+              #    type = "lvm_vg";
+              #    lvs = {
+              #      root = {
+              #        type = "lvm_lv";
+              #        size = "100%FREE";
+              #        content = {
+              #          type = "filesystem";
+              #          format = "ext4";
+              #          mountpoint = "/";
+              #          mountOptions = [
+              #            "defaults"
+              #            "noatime"
+              #            "nodiratime"
+              #          ];
+              #        };
+              #      };
+              #    };
+              #  };
+              #};
             };
           })
           {

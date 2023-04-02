@@ -13,8 +13,8 @@
       };
     };
     extraModulePackages = [ ];
-    kernelModules = [ "dm-snapshot" "uas" ];
-    initrd.kernelModules = [ "dm-snapshot" "uas" ];
+    kernelModules = [ "dm-snapshot" ];
+    initrd.kernelModules = [ "dm-snapshot" ];
     initrd.availableKernelModules = [ ];
   };
 
