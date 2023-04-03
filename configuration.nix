@@ -18,6 +18,10 @@
     initrd.availableKernelModules = [ ];
   };
 
+  systemd.extraConfig = ''
+    DefaultTimeoutStopSec=20s
+  '';
+
   networking = {
     useDHCP = false;
     enableIPv6 = true;

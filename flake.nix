@@ -19,9 +19,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, disko, nixinate, ... }@attrs: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, agenix, disko, nixinate, ... }@attrs: {
     apps = nixinate.nixinate.x86_64-linux self;
     nixosConfigurations = {
       "florian-desktop" = nixpkgs.lib.nixosSystem {
@@ -72,6 +76,7 @@
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
               disko.nixosModules.disko
+              agenix.nixosModules.default
               ./configuration.nix
             ];
 
@@ -85,8 +90,11 @@
             networking.interfaces.wlp2s0b1.useDHCP = true;
             networking.wireless.enable = true;
             networking.wireless.userControlled.enable = true;
+            age.secrets.wireless.file = ./secrets/wireless.age;
+            networking.wireless.environmentFile = config.age.secrets.wireless.path;
             networking.wireless.networks = {
               "Livebox-9500" = {
+                pskRaw = "@PSK_LIVEBOX_9500@";
               };
             };
             console.keyMap = "fr";
@@ -169,9 +177,11 @@
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
               disko.nixosModules.disko
+              agenix.nixosModules.default
               nixos-hardware.nixosModules.dell-xps-13-9310
               ./configuration.nix
             ];
+
 
             nix.registry = {
               nixpkgs.flake = nixpkgs;
@@ -185,8 +195,11 @@
             networking.interfaces.wlp58s0.useDHCP = true;
             networking.wireless.enable = true;
             networking.wireless.userControlled.enable = true;
+            age.secrets.wireless.file = ./secrets/wireless.age;
+            networking.wireless.environmentFile = config.age.secrets.wireless.path;
             networking.wireless.networks = {
               "Livebox-9500" = {
+                pskRaw = "@PSK_LIVEBOX_9500@";
               };
             };
             hardware.bluetooth.enable = true;
