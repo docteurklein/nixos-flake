@@ -76,6 +76,7 @@
             extraPackages = with pkgs; [
                 rofi
                 i3status
+                i3lock
                 i3blocks
             ];
         };
