@@ -2,7 +2,7 @@
   description = "NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     # helix.url = "github:helix-editor/helix";
     # pgx.url = "github:tcdi/pgx";
@@ -25,14 +25,28 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, agenix, disko, nixinate, ... }@attrs: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, agenix, disko, nixinate, ... }@inputs:
+    let
+      system = "x86_64-linux";
+      overlay-unstable = final: prev: {
+        unstable = import nixpkgs-unstable {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      };
+    in {
     apps = nixinate.nixinate.x86_64-linux self;
     nixosConfigurations = {
       "florian-desktop" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = attrs;
+        inherit system;
+        specialArgs = inputs;
         modules = [
           ({ config, pkgs, ... }: {
+            nixpkgs.overlays = [ overlay-unstable ];
+            nix.registry = {
+              nixpkgs.flake = nixpkgs;
+              self.flake = inputs.self;
+            };
             imports = [
               ./configuration.nix
             ];
@@ -42,7 +56,9 @@
             services.xserver.layout = "fr";
             services.xserver.xkbVariant = "bepo";
             services.xserver.videoDrivers = [ "nvidia" ];
+            #hardware.nvidia.package = pkgs.linuxKernel.packages.linux_6_1.nvidia_x11;
             hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
+            #boot.kernelPackages = pkgs.linuxPackages_latest;
 
             fileSystems."/" = {
               device = "/dev/disk/by-label/root";
@@ -57,7 +73,11 @@
 
             swapDevices = [{ device = "/dev/disk/by-label/swap"; }];
 
-            boot.loader.grub.device = "/dev/sdb";
+            boot.loader.grub = {
+              device = "/dev/sdb";
+              efiSupport = false;
+              efiInstallAsRemovable = false;
+            };
             boot.initrd.luks.devices = {
               crypt = {
                 device = "/dev/sdb2";
@@ -69,9 +89,10 @@
       };
       "florian-laptop" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = attrs;
+        specialArgs = inputs;
         modules = [
-          ({ config, pkgs, nixpkgs-unstable, modulesPath, ... }: {
+          ({ config, pkgs, modulesPath, ... }: {
+            nixpkgs.overlays = [ overlay-unstable ];
             imports = [
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
@@ -82,9 +103,9 @@
 
             nix.registry = {
               nixpkgs.flake = nixpkgs;
-              # nixpkgs-unstable.flake = nixpkgs-unstable;
+              self.flake = inputs.self;
             };
-            environment.systemPackages = [ nixpkgs-unstable.legacyPackages."x86_64-linux".yewtube ];
+            environment.systemPackages = [ pkgs.unstable.yewtube ];
             networking.hostName = "florian-laptop";
             networking.interfaces.enp1s0.useDHCP = true;
             networking.interfaces.wlp2s0b1.useDHCP = true;
@@ -115,7 +136,11 @@
               ];
             };
 
-            boot.loader.grub.device = "/dev/sda";
+            boot.loader.grub = {
+              device = "/dev/sda";
+              efiSupport = true;
+              efiInstallAsRemovable = true;
+            };
             disko.devices.disk.sda = {
               type = "disk";
               device = "/dev/sda";
@@ -125,14 +150,12 @@
                 partitions = [
                   {
                     name = "boot";
-                    type = "partition";
                     start = "0";
                     end = "1M";
                     flags = [ "bios_grub" ];
                   }
                   {
                     name = "ESP";
-                    type = "partition";
                     start = "1M";
                     end = "512M";
                     bootable = true;
@@ -144,7 +167,6 @@
                   }
                   {
                     name = "root";
-                    type = "partition";
                     start = "512M";
                     end = "100%";
                     content = {
@@ -170,9 +192,9 @@
       };
       "florian-work-laptop" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = attrs;
+        specialArgs = inputs;
         modules = [
-          ({ config, pkgs, nixpkgs-unstable, modulesPath, ... }: {
+          ({ config, pkgs, modulesPath, ... }: {
             imports = [
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
@@ -182,14 +204,11 @@
               ./configuration.nix
             ];
 
-
             nix.registry = {
               nixpkgs.flake = nixpkgs;
-              # nixpkgs-unstable.flake = nixpkgs-unstable;
+              self.flake = inputs.self;
             };
-            environment.systemPackages = with nixpkgs-unstable.legacyPackages."x86_64-linux"; [
-              fusionInventory
-            ];
+            environment.systemPackages = [ pkgs.unstable.fusionInventory ];
             networking.hostName = "florian-work-laptop";
             #networking.interfaces.enp1s0.useDHCP = true;
             networking.interfaces.wlp58s0.useDHCP = true;
@@ -226,7 +245,11 @@
             boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
             boot.kernelModules = [ "kvm-intel" ];
 
-            boot.loader.grub.device = "/dev/nvme0n1";
+            boot.loader.grub = {
+              device = "/dev/nvme0n1";
+              efiSupport = true;
+              efiInstallAsRemovable = true;
+            };
             disko.devices = {
               disk.nvme0n1 = {
                 type = "disk";
@@ -237,14 +260,12 @@
                   partitions = [
                     {
                       name = "boot";
-                      type = "partition";
                       start = "0";
                       end = "1M";
                       flags = [ "bios_grub" ];
                     }
                     {
                       name = "ESP";
-                      type = "partition";
                       start = "1M";
                       end = "512M";
                       bootable = true;
@@ -256,7 +277,6 @@
                     }
                     {
                       name = "root";
-                      type = "partition";
                       start = "512M";
                       end = "100%";
                       content = {
@@ -278,7 +298,6 @@
                   type = "lvm_vg";
                   lvs = {
                     root = {
-                      type = "lvm_lv";
                       size = "100%FREE";
                       content = {
                         type = "filesystem";

@@ -1,14 +1,13 @@
 { config, pkgs, lib, ... }: {
   boot = {
+    readOnlyNixStore = false;
     kernelParams = [ "boot.shell_on_fail" ]; 
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages;
+    #kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       grub = {
         enable = true;
         configurationLimit = 10;
-        version = 2;
-        efiSupport = true;
-        efiInstallAsRemovable = true;
         enableCryptodisk = true;
       };
     };
@@ -20,14 +19,15 @@
 
   systemd.extraConfig = ''
     DefaultTimeoutStopSec=20s
+    DefaultTimeoutStartSec=20s
   '';
 
   networking = {
     useDHCP = false;
     enableIPv6 = true;
     firewall = {
-      enable = true;
-      allowedTCPPorts = [ 80 443 22 8080 8081 ];
+      enable = false;
+      allowedTCPPorts = [ 80 443 22 8080 8081 6443 ];
       allowedUDPPorts = [ 53 ];
       allowPing = true;
     };
@@ -56,11 +56,18 @@
     logrotate = {
       enable = true;
     };
+    journald.extraConfig = ''
+      MaxRetentionSec=7day
+      RateLimitInterval=10s
+      RateLimitBurst=100000
+    '';
     openssh = {
       enable = true;
-      permitRootLogin = "no";
-      passwordAuthentication = false;
-      forwardX11 = true;
+      settings = {
+        X11Forwarding = true;
+        PermitRootLogin = "no";
+        PasswordAuthentication = false;
+      };
       ports = [ 22 ];
     };
     xserver = {
@@ -69,7 +76,14 @@
             xterm.enable = false;
         };
         displayManager = {
-            defaultSession = "none+i3";
+          defaultSession = "none+i3";
+          autoLogin = {
+            enable = true;
+            user = "florian";
+          };
+          sessionCommands = ''
+            ${pkgs.xorg.xset}/bin/xset r rate 190 80
+          '';
         };
         windowManager.i3 = {
             enable = true;
@@ -92,8 +106,10 @@
     postgresql = {
       enable = true;
       package = pkgs.postgresql_15;
-      extraPlugins = [
-        #pkgs.pg_ivm
+      extraPlugins = with pkgs.postgresql15Packages; [
+        wal2json
+        pg_ivm
+        pg_hint_plan
       ];
       settings = {
         log_connections = true;
@@ -101,8 +117,33 @@
         logging_collector = true;
         log_disconnections = true;
         log_destination = lib.mkForce "syslog";
+        wal_level = "logical";
+        #"auto_explain.log_nested_statements" = true;
+        #"auto_explain.log_min_duration" = 0;
+        shared_preload_libraries = "auto_explain,pg_hint_plan,pg_stat_statements";
+        max_connections = 100;
+        shared_buffers = "3GB"; # 1/4th of RAM
+        work_mem = "30MB"; # 1/4th of RAM / max_connections
+        effective_cache_size = "9GB"; # 75% of total RAM
+        maintenance_work_mem = "1GB";
+        checkpoint_completion_target = 0.9;
+        wal_buffers = "16MB";
+        default_statistics_target = 100;
+        random_page_cost = 1.1;
+        effective_io_concurrency = 200;
+        min_wal_size = "1GB";
+        max_wal_size = "4GB";
+        max_worker_processes = 6;
+        max_parallel_workers_per_gather = 3;
+        max_parallel_workers = 6;
+        max_parallel_maintenance_workers = 3;
       };
     };
+  };
+  services.k3s.enable = true;
+
+  systemd.services.postgresql.serviceConfig = {
+    MemoryMax = "12G";
   };
 
   hardware.opengl.enable = true;
@@ -167,6 +208,10 @@
     ];
     systemPackages = with pkgs; [
       man
+      sway
+      iftop
+      jq
+      htop
       direnv
       nix-direnv
       git
@@ -174,7 +219,7 @@
       binutils
       gnutls
       gnumake
-      firefox-bin
+      firefox
       stremio
       alacritty
       docker-compose
@@ -208,7 +253,7 @@
       fd
       ripgrep
       socat
-      google-cloud-sdk
+      (google-cloud-sdk.withExtraComponents ([google-cloud-sdk.components.gke-gcloud-auth-plugin]))
       kubectl
       kubectx
       kubernetes-helm
@@ -257,8 +302,6 @@
       allowBroken = true;
       allowUnfree = true;
       packageOverrides = pkgs: with pkgs; {
-        #pg_ivm = pkgs.callPackage ./pg_ivm.nix {};
-        #postgres = pkgs.callPackage ./pg_ivm.nix {};
       };
     };
   };
@@ -282,7 +325,6 @@
       allowed-users = [ "@wheel" ];
       auto-optimise-store = true;
     };
-    readOnlyStore = false;
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
@@ -304,7 +346,7 @@
     autoUpgrade = {
       enable = true;
       allowReboot = false;
-      flake = "/etc/nixos#default";
+      flake = "/etc/nixos";
       flags = [
         "--recreate-lock-file"
         "-L" # print build logs
