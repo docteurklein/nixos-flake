@@ -23,7 +23,7 @@
   '';
 
   networking = {
-    useDHCP = false;
+    useDHCP = true;
     enableIPv6 = true;
     firewall = {
       enable = false;

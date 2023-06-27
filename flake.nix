@@ -25,7 +25,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, agenix, disko, nixinate, ... }@inputs:
+  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, nixos-hardware, nixos-generators, agenix, disko, nixinate, ... }:
     let
       system = "x86_64-linux";
       overlay-unstable = final: prev: {
@@ -51,7 +51,6 @@
               ./configuration.nix
             ];
             networking.hostName = "florian-desktop";
-            networking.interfaces.enp3s0.useDHCP = true;
             console.keyMap = "fr-bepo";
             services.xserver.layout = "fr";
             services.xserver.xkbVariant = "bepo";
@@ -107,8 +106,6 @@
             };
             environment.systemPackages = [ pkgs.unstable.yewtube ];
             networking.hostName = "florian-laptop";
-            networking.interfaces.enp1s0.useDHCP = true;
-            networking.interfaces.wlp2s0b1.useDHCP = true;
             networking.wireless.enable = true;
             networking.wireless.userControlled.enable = true;
             age.secrets.wireless.file = ./secrets/wireless.age;
@@ -210,8 +207,6 @@
             };
             environment.systemPackages = [ pkgs.unstable.fusionInventory ];
             networking.hostName = "dell-xps-13";
-            #networking.interfaces.enp1s0.useDHCP = true;
-            networking.interfaces.wlp58s0.useDHCP = true;
             networking.wireless.enable = true;
             networking.wireless.userControlled.enable = true;
             age.secrets.wireless.file = ./secrets/wireless.age;
