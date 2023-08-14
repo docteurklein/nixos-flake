@@ -190,7 +190,7 @@
           }
         ];
       };
-      "florian-work-laptop" = nixpkgs.lib.nixosSystem {
+      "dell-xps-13" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = inputs;
         modules = [
@@ -209,7 +209,7 @@
               self.flake = inputs.self;
             };
             environment.systemPackages = [ pkgs.unstable.fusionInventory ];
-            networking.hostName = "florian-work-laptop";
+            networking.hostName = "dell-xps-13";
             #networking.interfaces.enp1s0.useDHCP = true;
             networking.interfaces.wlp58s0.useDHCP = true;
             networking.wireless.enable = true;
@@ -283,7 +283,7 @@
                         type = "luks";
                         name = "crypted";
                         extraOpenArgs = [ "--allow-discards" ];
-                        keyFile = "/tmp/secret.key";
+                        settings.keyFile = "/tmp/secret.key";
                         content = {
                           type = "lvm_pv";
                           vg = "pool";
