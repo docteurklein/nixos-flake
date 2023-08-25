@@ -191,6 +191,7 @@
         specialArgs = inputs;
         modules = [
           ({ config, pkgs, modulesPath, ... }: {
+            nixpkgs.overlays = [ overlay-unstable ];
             imports = [
               (modulesPath + "/installer/scan/not-detected.nix")
               (modulesPath + "/profiles/qemu-guest.nix")
@@ -277,7 +278,10 @@
                         type = "luks";
                         name = "crypted";
                         extraOpenArgs = [ "--allow-discards" ];
-                        settings.keyFile = "/tmp/secret.key";
+                        settings = {
+                          keyFile = "/tmp/secret.key";
+                          fallbackToPassword = true;
+                        };
                         content = {
                           type = "lvm_pv";
                           vg = "pool";
@@ -311,7 +315,7 @@
           })
           {
             _module.args.nixinate = {
-              host = "192.168.1.10";
+              host = "192.168.1.27";
               sshUser = "florian";
               buildOn = "remote"; # valid args are "local" or "remote"
               substituteOnTarget = true; # if buildOn is "local" then it will substitute on the target, "-s"
