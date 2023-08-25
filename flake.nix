@@ -56,8 +56,7 @@
             services.xserver.xkbVariant = "bepo";
             services.xserver.videoDrivers = [ "nvidia" ];
             #hardware.nvidia.package = pkgs.linuxKernel.packages.linux_6_1.nvidia_x11;
-            hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
-            #boot.kernelPackages = pkgs.linuxPackages_latest;
+            #hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
 
             fileSystems."/" = {
               device = "/dev/disk/by-label/root";
@@ -338,5 +337,66 @@
         format = "install-iso";
       };
     };
-  };
+
+    defaultPackage.x86_64-linux =
+      with import nixpkgs { system = "x86_64-linux"; };
+      #let
+      # bd-common = stdenv.mkDerivation {
+      #  name = "bitdefender-common";
+      #  src = fetchurl {
+      #    url = "https://download.bitdefender.com/repos/deb/pool/non-free/b/bitdefender-common/bitdefender-common_3.1.2-1_amd64.deb";
+      #    sha256 = "sha256-FZmejsTYPvqGwaYJzvHO244kRWFnI5xKBdHQ2QZl1KQ=";
+      #  };
+      #  sourceRoot = ".";
+
+      #  nativeBuildInputs = [
+      #    dpkg autoPatchelfHook stdenv.cc.cc.lib
+      #  ];
+
+      #  unpackCmd = "dpkg-deb -x $src .";
+
+      #  dontConfigure = true;
+      #  dontBuild = true;
+
+      #  installPhase = ''
+      #      mkdir -p $out
+      #      cp -Rv usr opt $out/
+      #      ls -alhR $out
+      #    '';
+      #};
+      #in
+      stdenv.mkDerivation {
+        name = "bdscan";
+        srcs = [
+          (fetchurl {
+            name = "bdscan";
+            url = "https://download.bitdefender.com/repos/deb/pool/non-free/b/bitdefender-scanner/bitdefender-scanner_7.6-3_amd64.deb";
+            sha256 = "sha256-nF+X4ypJKqc3LLZ9qJw3voZZ4ZC3Dm/LwYE+0+nB7PI=";
+          })
+          (fetchurl {
+            name = "bdcommon";
+            url = "https://download.bitdefender.com/repos/deb/pool/non-free/b/bitdefender-common/bitdefender-common_3.1.2-1_amd64.deb";
+            sha256 = "sha256-FZmejsTYPvqGwaYJzvHO244kRWFnI5xKBdHQ2QZl1KQ=";
+          })
+        ];
+        sourceRoot = ".";
+
+        nativeBuildInputs = [
+          dpkg autoPatchelfHook stdenv.cc.cc.lib
+        ];
+
+        unpackCmd = ''
+          for src in $srcs; do dpkg-deb -x $src .; done
+        '';
+
+        dontConfigure = true;
+        dontBuild = true;
+
+        installPhase = ''
+          mkdir -p $out/bin
+          cp -Rv opt usr $out/
+          cp -v "$out/opt/BitDefender-scanner/bin/bdscan" "$out/bin/bdscan"
+        '';
+      };
+    };
 }

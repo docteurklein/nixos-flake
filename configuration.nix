@@ -2,8 +2,8 @@
   boot = {
     readOnlyNixStore = false;
     kernelParams = [ "boot.shell_on_fail" ]; 
-    kernelPackages = pkgs.linuxPackages;
-    #kernelPackages = pkgs.linuxPackages_latest;
+    #kernelPackages = pkgs.linuxPackages;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       grub = {
         enable = true;
@@ -151,6 +151,7 @@
   virtualisation = {
     docker = {
       enable = true;
+      #package = pkgs.unstable.docker;
       autoPrune.enable = true;
       enableOnBoot = true;
     };
@@ -273,7 +274,7 @@
       dc = "docker-compose";
       dr = "docker run --rm it";
       dcr = "docker-compose run --rm";
-      dce = "docker-compose exec --rm";
+      dce = "docker-compose exec";
       v = "vim";
       g = "git";
       gc = "git commit";
