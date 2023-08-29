@@ -26,7 +26,7 @@
     useDHCP = true;
     enableIPv6 = true;
     firewall = {
-      enable = false;
+      enable = true;
       allowedTCPPorts = [ 80 443 22 8080 8081 6443 ];
       allowedUDPPorts = [ 53 ];
       allowPing = true;
@@ -140,7 +140,10 @@
       };
     };
   };
-  services.k3s.enable = true;
+  services.k3s = {
+    enable = true;
+    extraFlags = "--write-kubeconfig /etc/rancher/k3s/k3s.yaml --write-kubeconfig-mode 644";
+  };
 
   systemd.services.postgresql.serviceConfig = {
     MemoryMax = "12G";
@@ -268,6 +271,8 @@
     ];
 
     shellAliases = {
+      n = "nix";
+      ll = "ls -Alh";
       s = "sudo systemctl";
       j = "sudo journalctl";
       d = "docker";
