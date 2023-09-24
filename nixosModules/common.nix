@@ -196,7 +196,7 @@
       enable = true;
       keyMode = "vi";
       historyLimit = 50000;
-      extraConfig = builtins.readFile ./dotfiles/tmux.conf;
+      extraConfig = builtins.readFile ../dotfiles/tmux.conf;
     };
   };
 
@@ -239,7 +239,7 @@
       ((vim_configurable.override { }).customize {
         name = "vim";
         vimrcConfig = {
-          customRC = builtins.readFile ./dotfiles/vimrc;
+          customRC = builtins.readFile ../dotfiles/vimrc;
         };
         vimrcConfig.packages.myVimPackage = with vimPlugins; {
           start = [
