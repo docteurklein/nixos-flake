@@ -192,12 +192,6 @@
     steam.enable = true;
     ssh.startAgent = false;
     fish.enable = true;
-    tmux = {
-      enable = true;
-      keyMode = "vi";
-      historyLimit = 50000;
-      extraConfig = builtins.readFile ../dotfiles/tmux.conf;
-    };
   };
 
   environment = {
@@ -235,7 +229,6 @@
       cachix
       tmux
       dmidecode
-      helix
       ((vim_configurable.override { }).customize {
         name = "vim";
         vimrcConfig = {
@@ -269,33 +262,6 @@
       pulseaudio-ctl
       vlc
     ];
-
-    shellAliases = {
-      n = "nix";
-      ll = "ls -Alh";
-      s = "sudo systemctl";
-      j = "sudo journalctl";
-      d = "docker";
-      dc = "docker-compose";
-      dr = "docker run --rm it";
-      dcr = "docker-compose run --rm";
-      dce = "docker-compose exec";
-      v = "vim";
-      g = "git";
-      gc = "git commit";
-      gd = "git diff";
-      gs = "git status";
-      gr = "git restore";
-      gpr = "git pull --rebase";
-      grs = "git restore --staged";
-      gph = "git push --force-with-lease";
-      k = "kubectl";
-      kg = "kubectl get";
-      kd = "kubectl describe";
-      ke = "kubectl exec -it";
-      kl = "kubectl logs --tail=1 -f";
-      ks = "kubectl config set-context --current --namespace";
-    };
   };
 
   nixpkgs = {
@@ -332,7 +298,7 @@
       auto-optimise-store = true;
     };
     extraOptions = ''
-      experimental-features = nix-command flakes
+      experimental-features = nix-command flakes repl-flake
       keep-outputs = true
       keep-derivations = true
     '';
@@ -348,7 +314,7 @@
   };
 
   system = {
-    stateVersion = "22.11"; # Did you read the comment?
+    stateVersion = "22.11"; # keep to lowest possible to prove BC
     autoUpgrade = {
       enable = true;
       allowReboot = false;

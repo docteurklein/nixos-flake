@@ -11,3 +11,7 @@
 ## later reconfig
 
     nix run .#apps.nixinate.florian-laptop
+
+## home-manager on non-nixos
+
+    nix run home-manager/release-23.05 -- switch --flake .

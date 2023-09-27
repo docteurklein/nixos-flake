@@ -33,7 +33,7 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, nixpkgs-unstable, flake-parts, home-manager, nixos-hardware, nixos-generators, agenix, disko, nixinate, ... }:
+  outputs = inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
