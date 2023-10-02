@@ -21,6 +21,7 @@
       gds = "git diff --staged";
       gs = "git status";
       gr = "git restore";
+      gpl = "git pull";
       gpr = "git pull --rebase";
       grs = "git restore --staged";
       gph = "git push --force-with-lease";
@@ -46,6 +47,10 @@
         auto-format = false;
       }];
     };
+  };
+  home.sessionVariables = {
+    EDITOR = "hx";
+    LESS = "-SRXFi";
   };
   programs.alacritty.enable = true;
   # wayland.windowManager.sway = {
