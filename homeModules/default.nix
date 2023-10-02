@@ -1,7 +1,11 @@
-{ config, pkgs, ... }:
-{
+{ config, pkgs, ... }: {
   home.stateVersion = "23.05";
   programs.home-manager.enable = true;
+  programs.git = {
+    enable = true;
+    userName = "Florian Klein";
+    userEmail = "florian.klein@free.fr";
+  };
   programs.fish = {
     enable = true;
     shellAliases = {
