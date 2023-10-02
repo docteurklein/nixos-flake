@@ -6,6 +6,7 @@
       modules = [
         ../nixosModules/florian-desktop.nix
         inputs.home-manager.nixosModules.home-manager
+        inputs.disko.nixosModules.disko
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
