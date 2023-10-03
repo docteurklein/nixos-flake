@@ -371,6 +371,7 @@
         "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
+        xsel
         nerdctl
         man
         gnome.nautilus

@@ -45,6 +45,21 @@
   };
   programs.helix = {
     enable = true;
+    settings = {
+      editor = {
+        completion-trigger-len = 0;
+        completion-replace = false;
+        cursorline = true;
+        cursorcolumn = true;
+        true-color = true;
+        undercurl = true;
+        color-modes = true;
+        cursor-shape = {
+          insert = "bar";
+          select = "underline";
+        };
+      };
+    };
     languages = {
       language = [{
         name = "rust";
