@@ -57,6 +57,13 @@
     LESS = "-SRXFi";
   };
   programs.alacritty.enable = true;
+
+  xsession.windowManager.i3 = {
+    enable = true;
+    extraConfig = builtins.readFile ../dotfiles/i3.conf;
+  };
+
+  
   # wayland.windowManager.sway = {
   #   enable = true;
   #   config = rec {
