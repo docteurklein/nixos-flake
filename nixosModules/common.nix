@@ -1,4 +1,8 @@
-{ config, pkgs, lib, ... }: {
+{ inputs, config, pkgs, lib, ... }: {
+
+  imports = [
+    inputs.nix-snapshotter.nixosModules.default
+  ];
 
   options = {
     disk = lib.mkOption {
@@ -74,6 +78,7 @@
         };
       };
     };
+
     boot = {
       readOnlyNixStore = false;
       kernelParams = [ "boot.shell_on_fail" ]; 
@@ -119,7 +124,8 @@
     };
 
     console = {
-      font = "Lat2-Terminus16";
+      font = "${pkgs.terminus_font}/share/consolefonts/ter-132n.psf.gz";
+      packages = with pkgs; [ terminus_font ];
     };
 
     fonts = {
@@ -131,6 +137,10 @@
     };
 
     services = {
+      tempo = {
+        enable = true;
+        configFile = ../tempo.yaml;
+      };
       grafana = {
         enable = true;
         settings = {
@@ -138,7 +148,19 @@
             http_addr = "127.0.0.1";
             http_port = 3000;
             domain = "localhost";
+            protocol = "http";
+            # cert_key = "/etc/nixos/dck-home.freeddns.org-key.pem";
+            # cert_file = "/etc/nixos/dck-home.freeddns.org.pem";
           };
+        };
+        provision.datasources.settings = {
+          apiVersion = 1;
+
+          datasources = [{
+            name = "Pyroscope";
+            type = "pyroscope";
+            url = "http://127.0.0.1:4040";
+          }];
         };
       };
       prometheus = {
@@ -155,6 +177,18 @@
             job_name = "nixos";
             static_configs = [{
               targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.node.port}" ];
+            }];
+          }
+          {
+            job_name = "tempo";
+            static_configs = [{
+              targets = [ "127.0.0.1:3200" ];
+            }];
+          }
+          {
+            job_name = "pyroscope";
+            static_configs = [{
+              targets = [ "127.0.0.1:4040" ];
             }];
           }
         ];
@@ -246,9 +280,34 @@
         };
       };
     };
-    services.k3s = {
+
+    environment.sessionVariables = {
+      # KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
+    };
+    networking.extraHosts = "127.0.0.1 api.kube";
+
+    services.kubernetes = {
+      roles = ["master" "node"];
+      masterAddress = "api.kube";
+      apiserverAddress = "https://api.kube:6443";
+      easyCerts = true;
+      apiserver = {
+        securePort = 6443;
+        advertiseAddress = "127.0.0.1";
+      };
+      addons.dns.enable = true;
+      kubelet.extraOpts = "--image-service-endpoint unix:///run/nix-snapshotter/nix-snapshotter.sock --fail-swap-on=false";
+    };
+
+    # services.k3s = {
+    #   enable = true;
+    #   package = pkgs.k3s;
+    #   extraFlags = "--write-kubeconfig /etc/rancher/k3s/k3s.yaml --write-kubeconfig-mode 644 --image-service-endpoint unix:///run/nix-snapshotter/nix-snapshotter.sock";
+    # };
+
+    services.nix-snapshotter = {
       enable = true;
-      extraFlags = "--write-kubeconfig /etc/rancher/k3s/k3s.yaml --write-kubeconfig-mode 644";
+      setContainerdSnapshotter = true;
     };
 
     systemd.services.postgresql.serviceConfig = {
@@ -258,6 +317,7 @@
     hardware.opengl.enable = true;
 
     virtualisation = {
+      containerd.enable = true;
       docker = {
         enable = true;
         #package = pkgs.unstable.docker;
@@ -299,10 +359,10 @@
       ssh.startAgent = false;
       fish.enable = true;
     };
-
+    programs.dconf.enable = true;
     environment = {
       variables = {
-        EDITOR = "vim";
+        EDITOR = "hx";
         LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
         LESS = "-SRXFi";
       };
@@ -311,7 +371,9 @@
         "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
+        nerdctl
         man
+        gnome.nautilus
         sway
         iftop
         jq
@@ -367,6 +429,7 @@
         pavucontrol
         pulseaudio-ctl
         vlc
+        nil
       ];
     };
 
@@ -375,6 +438,7 @@
         (self: super: {
           nix-direnv = super.nix-direnv.override { enableFlakes = true; };
         })
+        inputs.nix-snapshotter.overlays.default 
       ];
       config = {
         allowBroken = true;

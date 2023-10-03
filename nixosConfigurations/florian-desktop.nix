@@ -7,6 +7,7 @@
         ../nixosModules/florian-desktop.nix
         inputs.home-manager.nixosModules.home-manager
         inputs.disko.nixosModules.disko
+        inputs.nix-snapshotter.nixosModules.default
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;

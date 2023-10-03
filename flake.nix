@@ -31,17 +31,25 @@
       url = "github:hercules-ci/flake-parts";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-snapshotter = {
+      url = "github:pdtpartners/nix-snapshotter";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs = inputs@{ flake-parts, nix-snapshotter, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
         ./homeConfigurations/florian.nix
       ];
-      systems = [ "x86_64-linux" "x86_64-darwin" ];
+      systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
       perSystem = { config, self', inputs', pkgs, system, ... }: {
         packages.default = pkgs.hello;
+        packages.cert = pkgs.writeShellScriptBin "install-mkcert-ca" ''
+          set -exuo pipefail
+          ${pkgs.mkcert}/bin/mkcert -install
+        '';
       };
     };
 }
