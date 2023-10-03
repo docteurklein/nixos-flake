@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ config, lib, pkgs, ... }: {
   home.stateVersion = "23.05";
   programs.home-manager.enable = true;
   programs.git = {
@@ -60,9 +60,12 @@
 
   xsession.windowManager.i3 = {
     enable = true;
-    extraConfig = builtins.readFile ../dotfiles/i3.conf;
+    # config = {
+    #   # modifier = "Mod4";
+    #   bars = [];
+    # };
   };
-
+  xdg.configFile."i3/config".source = lib.mkForce ../dotfiles/i3.conf;
   
   # wayland.windowManager.sway = {
   #   enable = true;
@@ -75,25 +78,10 @@
   # };
   gtk = {
     enable = true;
-
-    # iconTheme = {
-    #   name = "Papirus-Dark";
-    #   package = pkgs.papirus-icon-theme;
-    # };
-
-    # theme = {
-    #   name = "palenight";
-    #   package = pkgs.palenight-theme;
-    # };
     theme = {
       name = "Materia-dark";
       package = pkgs.materia-theme;
     };
-
-    # cursorTheme = {
-    #   name = "Numix-Cursor";
-    #   package = pkgs.numix-cursor-theme;
-    # };
 
     gtk3.extraConfig = {
       Settings = ''
@@ -114,7 +102,7 @@
     };
   };
   home.sessionVariables = {
-    # KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
+    # KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
     GTK_THEME = "Materia-Dark";
   };
 }

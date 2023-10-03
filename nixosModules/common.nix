@@ -282,7 +282,7 @@
     };
 
     environment.sessionVariables = {
-      # KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
+      KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
     };
     networking.extraHosts = "127.0.0.1 api.kube";
 
