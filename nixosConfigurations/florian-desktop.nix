@@ -4,15 +4,11 @@
       inherit system;
       specialArgs = { inherit inputs; };
       modules = [
-        ../nixosModules/florian-desktop.nix
+        inputs.nur.nixosModules.nur
         inputs.home-manager.nixosModules.home-manager
         inputs.disko.nixosModules.disko
         inputs.nix-snapshotter.nixosModules.default
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.florian = import ../homeModules/default.nix;
-        }
+        ../nixosModules/florian-desktop.nix
       ];
     }
   );

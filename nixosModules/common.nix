@@ -105,6 +105,10 @@
       DefaultTimeoutStartSec=20s
     '';
 
+    # services.openvpn.servers = {
+    #   homeVPN = { config = ; };
+    # };
+
     networking = {
       useDHCP = true;
       enableIPv6 = true;
@@ -133,6 +137,8 @@
       enableGhostscriptFonts = true;
       fonts = with pkgs; [
         powerline-fonts
+        powerline-symbols
+        font-awesome
       ];
     };
 
@@ -210,33 +216,33 @@
         };
         ports = [ 22 ];
       };
-      xserver = {
-          enable = true;
-          desktopManager = {
-              xterm.enable = false;
-          };
-          displayManager = {
-            defaultSession = "none+i3";
-            autoLogin = {
-              enable = true;
-              user = "florian";
-            };
-            sessionCommands = ''
-              ${pkgs.xorg.xset}/bin/xset r rate 190 80
-            '';
-          };
-          windowManager.i3 = {
-              enable = true;
-              extraPackages = with pkgs; [
-                  rofi
-                  i3status
-                  i3lock
-                  i3blocks
-              ];
-          };
-          autoRepeatDelay = 190;
-          autoRepeatInterval = 80;
-      };
+      # xserver = {
+      #     enable = true;
+      #     desktopManager = {
+      #         xterm.enable = false;
+      #     };
+      #     displayManager = {
+      #       defaultSession = "none+i3";
+      #       autoLogin = {
+      #         enable = true;
+      #         user = "florian";
+      #       };
+      #       sessionCommands = ''
+      #         ${pkgs.xorg.xset}/bin/xset r rate 190 80
+      #       '';
+      #     };
+      #     windowManager.i3 = {
+      #         enable = true;
+      #         extraPackages = with pkgs; [
+      #             rofi
+      #             i3status
+      #             i3lock
+      #             i3blocks
+      #         ];
+      #     };
+      #     autoRepeatDelay = 190;
+      #     autoRepeatInterval = 80;
+      # };
       pipewire = {
         enable = true;
         alsa.enable = true;
@@ -284,18 +290,37 @@
     environment.sessionVariables = {
       KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
     };
-    networking.extraHosts = "127.0.0.1 api.kube";
+    # networking.extraHosts = "127.0.0.1 api.kube";
 
     services.kubernetes = {
       roles = ["master" "node"];
-      masterAddress = "api.kube";
-      apiserverAddress = "https://api.kube:6443";
-      easyCerts = true;
+      masterAddress = "localhost";
+      apiserverAddress = "https://localhost:6443";
       apiserver = {
-        securePort = 6443;
         advertiseAddress = "127.0.0.1";
+        securePort = 6443;
+        allowPrivileged = true;
       };
-      addons.dns.enable = true;
+      addons.dns = {
+        enable = true;
+        corefile = ''
+          .:10053 {
+            log
+            errors
+            health :10054
+            kubernetes ${config.services.kubernetes.addons.dns.clusterDomain} in-addr.arpa ip6.arpa {
+              pods insecure
+              fallthrough in-addr.arpa ip6.arpa
+            }
+            prometheus :10055
+            forward . /etc/resolv.conf
+            cache 30
+            loop
+            reload
+            loadbalance
+          }
+        '';
+      };
       kubelet.extraOpts = "--image-service-endpoint unix:///run/nix-snapshotter/nix-snapshotter.sock --fail-swap-on=false";
     };
 
@@ -314,8 +339,6 @@
       MemoryMax = "12G";
     };
 
-    hardware.opengl.enable = true;
-
     virtualisation = {
       containerd.enable = true;
       docker = {
@@ -328,6 +351,7 @@
 
     security = {
       rtkit.enable = true;
+      polkit.enable = true;
       sudo = {
         enable = true;
         wheelNeedsPassword = false;
@@ -358,24 +382,64 @@
       steam.enable = true;
       ssh.startAgent = false;
       fish.enable = true;
+      hyprland = {
+        enable = true;
+        enableNvidiaPatches = true;
+      };
+    };
+    services.greetd = {
+      enable = true;
+      settings = rec {
+        default_session = {
+          command = "${pkgs.hyprland}/bin/Hyprland -c ~/.config/hypr/hyprland.conf";
+          user = "florian";
+        };
+      };
     };
     programs.dconf.enable = true;
+
+    systemd.timers."wallpaper" = {
+      wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnBootSec = "5m";
+          OnUnitActiveSec = "5m";
+          Unit = "wallpaper.service";
+        };
+    };
+
+    systemd.services."wallpaper" = {
+      script = ''
+        set -exuo pipefail
+        ${pkgs.curl}/bin/curl -sL -o /tmp/wallpaper 'http://rammb.cira.colostate.edu/ramsdis/online/images/latest/himawari-8/full_disk_ahi_natural_color.jpg'
+        ${pkgs.hyprland}/bin/hyprctl dispatch 'exec hyprpaper -c ~/.config/hyprpaper'
+      '';
+      serviceConfig = {
+        Type = "oneshot";
+        User = "florian";
+        Environment = [
+          "WAYLAND_DISPLAY=wayland-1"
+          "XDG_RUNTIME_DIR=/run/user/1000"
+          "HYPRLAND_INSTANCE_SIGNATURE=v0.30.0_1696763400"
+        ];
+      };
+    };
+    
     environment = {
       variables = {
         EDITOR = "hx";
         LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
         LESS = "-SRXFi";
+        WLR_NO_HARDWARE_CURSORS = "1";
       };
       pathsToLink = [
         "/libexec"
         "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
-        xsel
+        hyprpaper
         nerdctl
         man
         gnome.nautilus
-        sway
         iftop
         jq
         htop
@@ -440,6 +504,7 @@
           nix-direnv = super.nix-direnv.override { enableFlakes = true; };
         })
         inputs.nix-snapshotter.overlays.default 
+        inputs.nur.overlay
       ];
       config = {
         allowBroken = true;

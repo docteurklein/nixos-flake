@@ -6,6 +6,75 @@
     userName = "Florian Klein";
     userEmail = "florian.klein@free.fr";
   };
+  programs.firefox = {
+    enable = true;
+    profiles.main = {
+      isDefault = true;
+      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+        ublock-origin
+        darkreader
+        privacy-badger
+        multi-account-containers
+        decentraleyes
+        # https-everywhere
+        # bitwarden
+        # clearurls
+        # duckduckgo-privacy-essentials
+        # floccus
+        # ghostery
+        # languagetool
+        # disconnect
+      ];
+      settings = {
+        # "browser.startup.homepage" = "https://nixos.org";
+        "browser.search.region" = "GB";
+        "browser.search.isUS" = false;
+        "distribution.searchplugins.defaultLocale" = "en-GB";
+        "general.useragent.locale" = "en-GB";
+        "browser.bookmarks.showMobileBookmarks" = true;
+        "browser.newtabpage.pinned" = [{
+          title = "NixOS";
+          url = "https://nixos.org";
+        }];
+      };
+      search = {
+        default = "DuckDuckGo";
+        force = true;
+        engines = {
+          "Nix Packages" = {
+            icon = "''${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+            urls = [{
+              template = "https://search.nixos.org/packages";
+              params = [
+                { name = "type"; value = "packages"; }
+                { name = "query"; value = "{searchTerms}"; }
+              ];
+            }];
+            definedAliases = [ "np!" ];
+          };
+          "Nix Options" = {
+            icon = "''${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+            urls = [{
+              template = "https://search.nixos.org/options";
+              params = [
+                { name = "type"; value = "options"; }
+                { name = "query"; value = "{searchTerms}"; }
+              ];
+            }];
+            definedAliases = [ "no!" ];
+          };
+          "NixOS Wiki" = {
+            urls = [{ template = "https://nixos.wiki/index.php?search={searchTerms}"; }];
+            iconUpdateURL = "https://nixos.wiki/favicon.png";
+            updateInterval = 24 * 60 * 60 * 1000; # every day
+            definedAliases = [ "@nw" ];
+          };
+          "Bing".metaData.hidden = true;
+          "Google".metaData.alias = "g!";
+        };
+      };
+    };
+  };
   programs.fish = {
     enable = true;
     shellAliases = {
@@ -59,6 +128,9 @@
           select = "underline";
         };
       };
+      keys.insert.j = {
+        j = "normal_mode"; # Maps `jj` to exit insert mode
+      };
     };
     languages = {
       language = [{
@@ -73,18 +145,213 @@
   };
   programs.alacritty.enable = true;
 
-  xsession.windowManager.i3 = {
+  programs.i3status-rust = {
     enable = true;
-    # config = {
-    #   # modifier = "Mod4";
-    #   bars = [];
-    # };
+    bars = {
+      top = {
+        blocks = [
+          {
+            block = "net";
+            device = "enp4s0";
+          }
+          {
+            block = "disk_space";
+            path = "/";
+            info_type = "available";
+            interval = 60;
+            warning = 20.0;
+            alert = 10.0;
+          }
+          {
+            block = "memory";
+            format = "$icon $mem_used_percents";
+          }
+          {
+            block = "cpu";
+            interval = 1;
+          }
+          {
+            block = "load";
+            interval = 1;
+            format = "$icon $1m";
+          }
+          {
+            block = "sound";
+            click = [
+              {
+                button = "left";
+                cmd = "pavucontrol --tab=3";
+              }
+            ];
+          }
+          {
+            block = "time";
+            interval = 5;
+            format = "$timestamp.datetime(f:'%a %d/%m %T')";
+          }
+        ];
+        settings = {
+          theme = {
+            theme = "solarized-dark";
+            overrides = {
+              idle_bg = "#123456";
+              idle_fg = "#abcdef";
+            };
+          };
+        };
+        icons = "awesome5";
+        theme = "gruvbox-dark";
+      };
+    };
   };
-  xdg.configFile."i3/config".source = lib.mkForce ../dotfiles/i3.conf;
+  # xsession.windowManager.i3 = {
+  #   enable = true;
+  #   # config = {
+  #   #   # modifier = "Mod4";
+  #   #   bars = [];
+  #   # };
+  # };
+  # xdg.configFile."i3/config".source = lib.mkForce ../dotfiles/i3.conf;
+
+  xdg.configFile."hyprpaper".text = ''
+    preload = /tmp/wallpaper
+    wallpaper = DP-3,/tmp/wallpaper
+  '';
+
+  programs.waybar = {
+    enable = true;
+    settings.mainBar = {
+      layer = "top";
+      position = "top";
+      height = 30;
+      output = [
+        "DP-3"
+      ];
+      modules-right = [ "cpu" "memory" "disk" "network#dl" "network#ul" "temperature" "clock#date" "clock#time" ];
+
+      disk = {
+        format = "{percentage_used}%";
+      };
+      "network#dl" = {
+        format = "DL: {bandwidthDownBytes}";
+      };
+      "network#ul" = {
+        format = "UL: {bandwidthUpBytes}";
+      };
+      "clock#date" = {
+        format = "{:%a %d/%m}";
+      };
+    };
+  };
+
+  # programs.wpaperd = {
+  #   enable = true;
+  #   settings = {
+  #     DP-3 = {
+  #       path = "/tmp/wallpaper";
+  #       sorting = "descending";
+  #     };
+  #   };
+  # }
+  # systemd.user.timers."wallpaper" = {
+  #   Install = {
+  #     WantedBy = [ "timers.target" ];
+  #   };
+  #   Timer = {
+  #     OnBootSec = "5m";
+  #     OnUnitActiveSec = "5m";
+  #     Unit = "wallpaper.service";
+  #   };
+  # };
+
+  # systemd.user.services."wallpaper" = {
+  #   Service = {
+  #     Type = "oneshot";
+  #     User = "florian";
+  #     Environment = [
+  #       "WAYLAND_DISPLAY=wayland-1"
+  #       "XDG_RUNTIME_DIR=/run/user/1000"
+  #     ];
+  #     ExecStart =
+  #       let scriptPkg = pkgs.writeShellScriptBin "polybar-start" ''
+  #         set -exuo pipefail
+  #         ${pkgs.curl}/bin/curl -sL -o /tmp/wallpaper 'http://rammb.cira.colostate.edu/ramsdis/online/images/latest/himawari-8/full_disk_ahi_natural_color.jpg'
+  #         ${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper
+  #       '';
+  #       in "${scriptPkg}/bin/polybar-start";
+  #   };
+  # };
   
+  programs.rofi.enable = true;
+  wayland.windowManager.hyprland = {
+    enable = true;
+    enableNvidiaPatches = true;
+    settings = {
+      input = {
+        kb_layout = "fr";
+        kb_variant = "bepo";
+        repeat_delay = 180;
+        repeat_rate = 80;
+      };
+      exec-once = [
+        # "i3status-rs ~/.config/i3status-rust/config-top.toml"
+        "${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper"
+        "waybar"
+      ];
+      "$mod" = "SUPER";
+      bind = [
+        "$mod, d, exec, rofi -show drun"
+        "$mod, i, exec, firefox"
+        "$mod SHIFT, t, exec, alacritty"
+        "$mod SHIFT, q, killactive,"
+        "$mod, Tab, cyclenext,"
+        "$mod, f, fullscreen, 1"
+
+        "$mod, left, movefocus, l"
+        "$mod, right, movefocus, r"
+        "$mod, up, movefocus, u"
+        "$mod, down, movefocus, d"
+
+        "$mod SHIFT, left, swapwindow, l"
+        "$mod SHIFT, right, swapwindow, r"
+        "$mod SHIFT, up, swapwindow, u"
+        "$mod SHIFT, down, swapwindow, d"
+
+        "$mod, t, movefocus, l"
+        "$mod, s, movefocus, d"
+        "$mod, r, movefocus, u"
+        "$mod, n, movefocus, r"
+
+        "$mod, 1, workspace, 1"
+        "$mod, 2, workspace, 2"
+        "$mod, 3, workspace, 3"
+        "$mod, 4, workspace, 4"
+
+        "$mod SHIFT, 1, movetoworkspace, 1"
+        "$mod SHIFT, 2, movetoworkspace, 2"
+        "$mod SHIFT, 3, movetoworkspace, 3"
+        "$mod SHIFT, 4, movetoworkspace, 4"
+
+        "$mod, mouse_down, workspace, e+1"
+        "$mod, mouse_up, workspace, e-1"
+      ];
+      bindm = [
+        "$mod, mouse:272, movewindow"
+        "$mod, mouse:273, resizewindow"
+      ];
+      windowrulev2 = [
+        "opacity 1 0.7,class:.*"
+      ];
+      decoration = {
+        shadow_offset = "0 5";
+        "col.shadow" = "rgba(00000099)";
+        rounding = 7;
+      };
+    };
+  };
   # wayland.windowManager.sway = {
   #   enable = true;
-  #   config = rec {
+  #   config = {
   #     modifier = "Mod4";
   #     terminal = "fish"; 
   #     startup = [
@@ -117,7 +384,7 @@
     };
   };
   home.sessionVariables = {
-    # KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
+    KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
     GTK_THEME = "Materia-Dark";
   };
 }

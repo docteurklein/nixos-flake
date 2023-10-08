@@ -6,6 +6,7 @@
       modules = [
         ../homeModules/default.nix
         ({...}: {
+          nixpkgs.overlays = [ inputs.nur.overlay ];
           home.username = "Florian-Klein";
           home.homeDirectory = "/home/Florian-Klein";
         })
@@ -18,6 +19,7 @@
       modules = [
         ../homeModules/default.nix
         ({...}: {
+          nixpkgs.overlays = [ inputs.nur.overlay ];
           home.username = "florian";
           home.homeDirectory = "/home/florian";
         })
