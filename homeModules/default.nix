@@ -256,6 +256,7 @@
     };
     binds = {
       "Mod+D".action.spawn = "rofi";
+      "Mod+T".action.spawn = "alacritty";
       "Mod+Shift+Q".action.quit.skip-confirmation = true;
     };
   };
