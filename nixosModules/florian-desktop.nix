@@ -12,9 +12,6 @@
   };
   networking.hostName = "florian-desktop";
   console.keyMap = "fr-bepo";
-  services.xserver.xkb.layout = "fr";
-  services.xserver.xkb.variant = "bepo";
-  services.xserver.videoDrivers = [ "nvidia" ];
   hardware.graphics = {
     enable = true;
   };

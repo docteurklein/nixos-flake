@@ -78,7 +78,6 @@
     boot = {
       readOnlyNixStore = false;
       kernelParams = [ "boot.shell_on_fail" ]; 
-      #kernelPackages = pkgs.linuxPackages;
       kernelPackages = pkgs.linuxPackages_latest;
       loader = {
         systemd-boot.enable = true;
@@ -312,7 +311,7 @@
       enable = true;
       settings = rec {
         default_session = {
-          command = "${pkgs.niri}/bin/niri";
+          command = "${pkgs.niri}/bin/niri --session";
           user = "florian";
         };
       };
