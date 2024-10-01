@@ -12,13 +12,11 @@
   };
   networking.hostName = "florian-desktop";
   console.keyMap = "fr-bepo";
-  services.xserver.layout = "fr";
-  services.xserver.xkbVariant = "bepo";
+  services.xserver.xkb.layout = "fr";
+  services.xserver.xkb.variant = "bepo";
   services.xserver.videoDrivers = [ "nvidia" ];
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
-    driSupport = true;
-    driSupport32Bit = true;
   };
   hardware.nvidia = {
     modesetting.enable = true;
@@ -26,7 +24,7 @@
     powerManagement.finegrained = false;
     open = true;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.kernelModules = [ "kvm-intel" ];

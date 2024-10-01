@@ -94,6 +94,7 @@
       gds = "git diff --staged";
       gs = "git status";
       gr = "git restore";
+      gl = "git log";
       gpl = "git pull";
       gpr = "git pull --rebase";
       grs = "git restore --staged";
@@ -131,12 +132,25 @@
       keys.insert.j = {
         j = "normal_mode"; # Maps `jj` to exit insert mode
       };
+      keys.normal = {
+        space.F = "file_picker_in_current_buffer_directory";
+      };
     };
     languages = {
-      language = [{
-        name = "rust";
-        auto-format = false;
-      }];
+      language-server.phpactor = {
+        command = "phpactor";
+        args = [ "language-server" ];
+      };
+      language = [
+        {
+          name = "rust";
+          auto-format = false;
+        }
+        {
+          name = "php";
+          language-servers = [ "phpactor" ];
+        }
+      ];
     };
   };
   home.sessionVariables = {
@@ -213,10 +227,10 @@
   # };
   # xdg.configFile."i3/config".source = lib.mkForce ../dotfiles/i3.conf;
 
-  xdg.configFile."hyprpaper".text = ''
-    preload = /tmp/wallpaper
-    wallpaper = DP-3,/tmp/wallpaper
-  '';
+  # xdg.configFile."hyprpaper".text = ''
+  #   preload = /tmp/wallpaper
+  #   wallpaper = DP-3,/tmp/wallpaper
+  # '';
 
   programs.waybar = {
     enable = true;
@@ -282,10 +296,24 @@
   #   };
   # };
   
+  # programs.niri.config = ''
+  #   input {
+  #     keyboard {
+  #       xkb {
+  #         layout "fr"
+  #         variant "bepo"
+  #         // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
+  #       }
+  #     }
+  #   }
+  #   output "edP-1" {
+  #     scale 2.0
+  #   }
+  # '';
   programs.rofi.enable = true;
   wayland.windowManager.hyprland = {
     enable = true;
-    enableNvidiaPatches = true;
+    # enableNvidiaPatches = true;
     settings = {
       input = {
         kb_layout = "fr";
@@ -295,8 +323,9 @@
       };
       exec-once = [
         # "i3status-rs ~/.config/i3status-rust/config-top.toml"
-        "${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper"
+        # "${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper"
         "waybar"
+        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
       ];
       "$mod" = "SUPER";
       bind = [
@@ -322,15 +351,17 @@
         "$mod, r, movefocus, u"
         "$mod, n, movefocus, r"
 
-        "$mod, 1, workspace, 1"
-        "$mod, 2, workspace, 2"
-        "$mod, 3, workspace, 3"
-        "$mod, 4, workspace, 4"
+        "$mod, code:10, workspace, 1"
+        "$mod, code:11, workspace, 2"
+        "$mod, code:12, workspace, 3"
+        "$mod, code:13, workspace, 4"
+        "$mod, code:14, workspace, 5"
 
-        "$mod SHIFT, 1, movetoworkspace, 1"
-        "$mod SHIFT, 2, movetoworkspace, 2"
-        "$mod SHIFT, 3, movetoworkspace, 3"
-        "$mod SHIFT, 4, movetoworkspace, 4"
+        "$mod SHIFT, code:10, movetoworkspace, 1"
+        "$mod SHIFT, code:11, movetoworkspace, 2"
+        "$mod SHIFT, code:12, movetoworkspace, 3"
+        "$mod SHIFT, code:13, movetoworkspace, 4"
+        "$mod SHIFT, code:14, movetoworkspace, 5"
 
         "$mod, mouse_down, workspace, e+1"
         "$mod, mouse_up, workspace, e-1"
@@ -346,6 +377,9 @@
         shadow_offset = "0 5";
         "col.shadow" = "rgba(00000099)";
         rounding = 7;
+      };
+      misc = {
+        disable_hyprland_logo = true;
       };
     };
   };
@@ -387,4 +421,7 @@
     KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
     GTK_THEME = "Materia-Dark";
   };
+
+  # home.packages = with pkgs; [
+  # ];
 }

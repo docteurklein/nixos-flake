@@ -2,6 +2,7 @@
 
   imports = [
     inputs.nix-snapshotter.nixosModules.default
+    inputs.niri.nixosModules.niri
   ];
 
   options = {
@@ -16,45 +17,40 @@
         type = "disk";
         device = config.disk;
         content = {
-          type = "table";
-          format = "gpt";
-          partitions = [
-            {
-              name = "boot";
-              start = "0";
-              end = "1M";
-              flags = [ "bios_grub" ];
-            }
-            {
-              name = "ESP";
-              start = "1M";
-              end = "512M";
-              bootable = true;
+          type = "gpt";
+          partitions = {
+            ESP = {
+              label = "boot";
+              size = "500M";
+              type = "EF00";
               content = {
                 type = "filesystem";
                 format = "vfat";
                 mountpoint = "/boot";
+                mountOptions = [
+                  "defaults"
+                ];
               };
-            }
-            {
-              name = "root";
-              start = "512M";
-              end = "100%";
+            };
+            luks = {
+              label = "luks";
+              size = "100%";
               content = {
                 type = "luks";
                 name = "crypted";
-                extraOpenArgs = [ "--allow-discards" ];
+                extraOpenArgs = [ ];
                 settings = {
-                  keyFile = "/tmp/secret.key";
+                  allowDiscards = true;
                   fallbackToPassword = true;
                 };
+                passwordFile = "/tmp/secret.key";
                 content = {
                   type = "lvm_pv";
                   vg = "pool";
                 };
               };
-            }
-          ];
+            };
+          };
         };
       };
       lvm_vg = {
@@ -85,14 +81,16 @@
       #kernelPackages = pkgs.linuxPackages;
       kernelPackages = pkgs.linuxPackages_latest;
       loader = {
-        grub = {
-          enable = true;
-          configurationLimit = 10;
-          enableCryptodisk = true;
-          device = config.disk;
-          efiSupport = true;
-          efiInstallAsRemovable = true;
-        };
+        systemd-boot.enable = true;
+        efi.canTouchEfiVariables = true;
+        # grub = {
+        #   enable = true;
+        #   configurationLimit = 10;
+        #   enableCryptodisk = true;
+        #   device = config.disk;
+        #   # efiSupport = true;
+        #   # efiInstallAsRemovable = true;
+        # };
       };
       extraModulePackages = [ ];
       kernelModules = [ "dm-snapshot" ];
@@ -105,14 +103,20 @@
       DefaultTimeoutStartSec=20s
     '';
 
-    # services.openvpn.servers = {
-    #   homeVPN = { config = ; };
-    # };
+    services.resolved.enable = true;
+    services.openvpn.servers = {
+      homeVPN = {
+        config = "config /home/florian/proton.ovpn";
+        updateResolvConf = true;
+      };
+    };
 
     networking = {
+      # nameservers = [ "1.1.1.1" "8.8.8.8" ];
       useDHCP = true;
       enableIPv6 = true;
       firewall = {
+        trustedInterfaces = [ "docker0" ];
         enable = true;
         allowedTCPPorts = [ 80 443 22 8080 8081 6443 ];
         allowedUDPPorts = [ 53 ];
@@ -135,7 +139,7 @@
     fonts = {
       fontDir.enable = true;
       enableGhostscriptFonts = true;
-      fonts = with pkgs; [
+      packages = with pkgs; [
         powerline-fonts
         powerline-symbols
         font-awesome
@@ -332,7 +336,7 @@
 
     services.nix-snapshotter = {
       enable = true;
-      setContainerdSnapshotter = true;
+      # setContainerdSnapshotter = true;
     };
 
     systemd.services.postgresql.serviceConfig = {
@@ -379,23 +383,25 @@
       man.enable = false;
     };
     programs = {
+      niri.enable = true;
+      # sway.enable = true;
       steam.enable = true;
       ssh.startAgent = false;
       fish.enable = true;
-      hyprland = {
-        enable = true;
-        enableNvidiaPatches = true;
-      };
+      # hyprland = {
+      #   enable = true;
+      #   enableNvidiaPatches = true;
+      # };
     };
-    services.greetd = {
-      enable = true;
-      settings = rec {
-        default_session = {
-          command = "${pkgs.hyprland}/bin/Hyprland -c ~/.config/hypr/hyprland.conf";
-          user = "florian";
-        };
-      };
-    };
+    # services.greetd = {
+    #   enable = true;
+    #   settings = rec {
+    #     default_session = {
+    #       command = "${pkgs.hyprland}/bin/Hyprland -c ~/.config/hypr/hyprland.conf";
+    #       user = "florian";
+    #     };
+    #   };
+    # };
     programs.dconf.enable = true;
 
     systemd.timers."wallpaper" = {
@@ -411,7 +417,8 @@
       script = ''
         set -exuo pipefail
         ${pkgs.curl}/bin/curl -sL -o /tmp/wallpaper 'http://rammb.cira.colostate.edu/ramsdis/online/images/latest/himawari-8/full_disk_ahi_natural_color.jpg'
-        ${pkgs.hyprland}/bin/hyprctl dispatch 'exec hyprpaper -c ~/.config/hyprpaper'
+        # ${pkgs.procps}/bin/pkill -f hyprpaper || true
+        # ${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper
       '';
       serviceConfig = {
         Type = "oneshot";
@@ -419,7 +426,7 @@
         Environment = [
           "WAYLAND_DISPLAY=wayland-1"
           "XDG_RUNTIME_DIR=/run/user/1000"
-          "HYPRLAND_INSTANCE_SIGNATURE=v0.30.0_1696763400"
+          # "HYPRLAND_INSTANCE_SIGNATURE=v0.30.0_1696763400"
         ];
       };
     };
@@ -436,10 +443,14 @@
         "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
-        hyprpaper
+        # xdg-desktop-portal-hyprland
+        grim
+        slurp
+        wireplumber
+        # hyprpaper
         nerdctl
         man
-        gnome.nautilus
+        nautilus
         iftop
         jq
         htop
@@ -501,7 +512,7 @@
     nixpkgs = {
       overlays = [
         (self: super: {
-          nix-direnv = super.nix-direnv.override { enableFlakes = true; };
+          # nix-direnv = super.nix-direnv.override { enableFlakes = true; };
         })
         inputs.nix-snapshotter.overlays.default 
         inputs.nur.overlay
@@ -532,6 +543,7 @@
         trusted-users = [ "@wheel" ];
         allowed-users = [ "@wheel" ];
         auto-optimise-store = true;
+        allow-import-from-derivation = true;
       };
       extraOptions = ''
         experimental-features = nix-command flakes repl-flake
@@ -541,7 +553,7 @@
       gc = {
         automatic = true;
         dates = "weekly";
-        options = "--delete-older-than 7d --max-freed $((64 * 1024**3))";
+        options = "--delete-older-than 365d";
       };
       optimise = {
         automatic = true;
