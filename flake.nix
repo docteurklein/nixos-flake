@@ -3,10 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    # nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
-    # helix.url = "github:helix-editor/helix";
-    # pgx.url = "github:tcdi/pgx";
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -50,12 +47,8 @@
         ./homeConfigurations/florian.nix
       ];
       systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-        # packages.default = pkgs.hello;
-        # packages.cert = pkgs.writeShellScriptBin "install-mkcert-ca" ''
-        #   set -exuo pipefail
-        #   ${pkgs.mkcert}/bin/mkcert -install
-        # '';
-      };
+      # perSystem = { config, self', inputs', pkgs, system, ... }: {
+      #   # packages.default = pkgs.hello;
+      # };
     };
 }

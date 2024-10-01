@@ -17,9 +17,10 @@
     inputs.home-manager.lib.homeManagerConfiguration {
       inherit pkgs;
       modules = [
+        inputs.niri.homeModules.niri
         ../homeModules/default.nix
         ({...}: {
-          nixpkgs.overlays = [ inputs.nur.overlay ];
+          nixpkgs.overlays = [ inputs.nur.overlay inputs.niri.overlays.niri ];
           home.username = "florian";
           home.homeDirectory = "/home/florian";
         })

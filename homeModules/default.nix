@@ -218,19 +218,6 @@
       };
     };
   };
-  # xsession.windowManager.i3 = {
-  #   enable = true;
-  #   # config = {
-  #   #   # modifier = "Mod4";
-  #   #   bars = [];
-  #   # };
-  # };
-  # xdg.configFile."i3/config".source = lib.mkForce ../dotfiles/i3.conf;
-
-  # xdg.configFile."hyprpaper".text = ''
-  #   preload = /tmp/wallpaper
-  #   wallpaper = DP-3,/tmp/wallpaper
-  # '';
 
   programs.waybar = {
     enable = true;
@@ -258,140 +245,21 @@
     };
   };
 
-  # programs.wpaperd = {
-  #   enable = true;
-  #   settings = {
-  #     DP-3 = {
-  #       path = "/tmp/wallpaper";
-  #       sorting = "descending";
-  #     };
-  #   };
-  # }
-  # systemd.user.timers."wallpaper" = {
-  #   Install = {
-  #     WantedBy = [ "timers.target" ];
-  #   };
-  #   Timer = {
-  #     OnBootSec = "5m";
-  #     OnUnitActiveSec = "5m";
-  #     Unit = "wallpaper.service";
-  #   };
-  # };
-
-  # systemd.user.services."wallpaper" = {
-  #   Service = {
-  #     Type = "oneshot";
-  #     User = "florian";
-  #     Environment = [
-  #       "WAYLAND_DISPLAY=wayland-1"
-  #       "XDG_RUNTIME_DIR=/run/user/1000"
-  #     ];
-  #     ExecStart =
-  #       let scriptPkg = pkgs.writeShellScriptBin "polybar-start" ''
-  #         set -exuo pipefail
-  #         ${pkgs.curl}/bin/curl -sL -o /tmp/wallpaper 'http://rammb.cira.colostate.edu/ramsdis/online/images/latest/himawari-8/full_disk_ahi_natural_color.jpg'
-  #         ${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper
-  #       '';
-  #       in "${scriptPkg}/bin/polybar-start";
-  #   };
-  # };
-  
-  # programs.niri.config = ''
-  #   input {
-  #     keyboard {
-  #       xkb {
-  #         layout "fr"
-  #         variant "bepo"
-  #         // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
-  #       }
-  #     }
-  #   }
-  #   output "edP-1" {
-  #     scale 2.0
-  #   }
-  # '';
-  programs.rofi.enable = true;
-  wayland.windowManager.hyprland = {
-    enable = true;
-    # enableNvidiaPatches = true;
-    settings = {
-      input = {
-        kb_layout = "fr";
-        kb_variant = "bepo";
-        repeat_delay = 180;
-        repeat_rate = 80;
-      };
-      exec-once = [
-        # "i3status-rs ~/.config/i3status-rust/config-top.toml"
-        # "${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper"
-        "waybar"
-        "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
-      ];
-      "$mod" = "SUPER";
-      bind = [
-        "$mod, d, exec, rofi -show drun"
-        "$mod, i, exec, firefox"
-        "$mod SHIFT, t, exec, alacritty"
-        "$mod SHIFT, q, killactive,"
-        "$mod, Tab, cyclenext,"
-        "$mod, f, fullscreen, 1"
-
-        "$mod, left, movefocus, l"
-        "$mod, right, movefocus, r"
-        "$mod, up, movefocus, u"
-        "$mod, down, movefocus, d"
-
-        "$mod SHIFT, left, swapwindow, l"
-        "$mod SHIFT, right, swapwindow, r"
-        "$mod SHIFT, up, swapwindow, u"
-        "$mod SHIFT, down, swapwindow, d"
-
-        "$mod, t, movefocus, l"
-        "$mod, s, movefocus, d"
-        "$mod, r, movefocus, u"
-        "$mod, n, movefocus, r"
-
-        "$mod, code:10, workspace, 1"
-        "$mod, code:11, workspace, 2"
-        "$mod, code:12, workspace, 3"
-        "$mod, code:13, workspace, 4"
-        "$mod, code:14, workspace, 5"
-
-        "$mod SHIFT, code:10, movetoworkspace, 1"
-        "$mod SHIFT, code:11, movetoworkspace, 2"
-        "$mod SHIFT, code:12, movetoworkspace, 3"
-        "$mod SHIFT, code:13, movetoworkspace, 4"
-        "$mod SHIFT, code:14, movetoworkspace, 5"
-
-        "$mod, mouse_down, workspace, e+1"
-        "$mod, mouse_up, workspace, e-1"
-      ];
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-      ];
-      windowrulev2 = [
-        "opacity 1 0.7,class:.*"
-      ];
-      decoration = {
-        shadow_offset = "0 5";
-        "col.shadow" = "rgba(00000099)";
-        rounding = 7;
-      };
-      misc = {
-        disable_hyprland_logo = true;
-      };
+  programs.niri.settings = {
+    input.keyboard.xkb = {
+      layout  = "fr";
+      variant = "bepo";
+      # options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
+    };
+    outputs."edP-1" = {
+      scale = 2.0;
+    };
+    binds = {
+      "Mod+D".action.spawn = "rofi";
+      "Mod+Shift+Q".action.quit.skip-confirmation = true;
     };
   };
-  # wayland.windowManager.sway = {
-  #   enable = true;
-  #   config = {
-  #     modifier = "Mod4";
-  #     terminal = "fish"; 
-  #     startup = [
-  #     ];
-  #   };
-  # };
+  programs.rofi.enable = true;
   gtk = {
     enable = true;
     theme = {

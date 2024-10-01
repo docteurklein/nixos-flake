@@ -104,12 +104,12 @@
     '';
 
     services.resolved.enable = true;
-    services.openvpn.servers = {
-      homeVPN = {
-        config = "config /home/florian/proton.ovpn";
-        updateResolvConf = true;
-      };
-    };
+    # services.openvpn.servers = {
+    #   homeVPN = {
+    #     config = "config /home/florian/proton.ovpn";
+    #     updateResolvConf = true;
+    #   };
+    # };
 
     networking = {
       # nameservers = [ "1.1.1.1" "8.8.8.8" ];
@@ -220,33 +220,6 @@
         };
         ports = [ 22 ];
       };
-      # xserver = {
-      #     enable = true;
-      #     desktopManager = {
-      #         xterm.enable = false;
-      #     };
-      #     displayManager = {
-      #       defaultSession = "none+i3";
-      #       autoLogin = {
-      #         enable = true;
-      #         user = "florian";
-      #       };
-      #       sessionCommands = ''
-      #         ${pkgs.xorg.xset}/bin/xset r rate 190 80
-      #       '';
-      #     };
-      #     windowManager.i3 = {
-      #         enable = true;
-      #         extraPackages = with pkgs; [
-      #             rofi
-      #             i3status
-      #             i3lock
-      #             i3blocks
-      #         ];
-      #     };
-      #     autoRepeatDelay = 190;
-      #     autoRepeatInterval = 80;
-      # };
       pipewire = {
         enable = true;
         alsa.enable = true;
@@ -334,6 +307,17 @@
     #   extraFlags = "--write-kubeconfig /etc/rancher/k3s/k3s.yaml --write-kubeconfig-mode 644 --image-service-endpoint unix:///run/nix-snapshotter/nix-snapshotter.sock";
     # };
 
+    
+    services.greetd = {
+      enable = true;
+      settings = rec {
+        default_session = {
+          command = "${pkgs.niri}/bin/niri";
+          user = "florian";
+        };
+      };
+    };
+
     services.nix-snapshotter = {
       enable = true;
       # setContainerdSnapshotter = true;
@@ -384,24 +368,10 @@
     };
     programs = {
       niri.enable = true;
-      # sway.enable = true;
       steam.enable = true;
       ssh.startAgent = false;
       fish.enable = true;
-      # hyprland = {
-      #   enable = true;
-      #   enableNvidiaPatches = true;
-      # };
     };
-    # services.greetd = {
-    #   enable = true;
-    #   settings = rec {
-    #     default_session = {
-    #       command = "${pkgs.hyprland}/bin/Hyprland -c ~/.config/hypr/hyprland.conf";
-    #       user = "florian";
-    #     };
-    #   };
-    # };
     programs.dconf.enable = true;
 
     systemd.timers."wallpaper" = {
@@ -413,24 +383,6 @@
         };
     };
 
-    systemd.services."wallpaper" = {
-      script = ''
-        set -exuo pipefail
-        ${pkgs.curl}/bin/curl -sL -o /tmp/wallpaper 'http://rammb.cira.colostate.edu/ramsdis/online/images/latest/himawari-8/full_disk_ahi_natural_color.jpg'
-        # ${pkgs.procps}/bin/pkill -f hyprpaper || true
-        # ${pkgs.hyprpaper}/bin/hyprpaper -c ~/.config/hyprpaper
-      '';
-      serviceConfig = {
-        Type = "oneshot";
-        User = "florian";
-        Environment = [
-          "WAYLAND_DISPLAY=wayland-1"
-          "XDG_RUNTIME_DIR=/run/user/1000"
-          # "HYPRLAND_INSTANCE_SIGNATURE=v0.30.0_1696763400"
-        ];
-      };
-    };
-    
     environment = {
       variables = {
         EDITOR = "hx";
@@ -443,11 +395,9 @@
         "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
-        # xdg-desktop-portal-hyprland
         grim
         slurp
         wireplumber
-        # hyprpaper
         nerdctl
         man
         nautilus
