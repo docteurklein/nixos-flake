@@ -14,7 +14,14 @@
   console.keyMap = "fr-bepo";
   hardware.graphics = {
     enable = true;
+    enable32Bit = true;
   };
+
+  hardware.pulseaudio.support32Bit = config.hardware.pulseaudio.enable;
+
+  services.xserver.xkb.layout = "fr";
+  services.xserver.xkb.variant = "bepo";
+  services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = false;

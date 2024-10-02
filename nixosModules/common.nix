@@ -394,6 +394,7 @@
         "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
+        xwayland-satellite
         grim
         slurp
         wireplumber
