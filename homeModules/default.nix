@@ -1,11 +1,21 @@
 { config, lib, pkgs, ... }: {
   home.stateVersion = "23.05";
   programs.home-manager.enable = true;
+
   programs.git = {
     enable = true;
     userName = "Florian Klein";
     userEmail = "florian.klein@free.fr";
+    extraConfig = {
+      init.defaultBranch = "main";
+    };
   };
+
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
   programs.firefox = {
     enable = true;
     profiles.main = {
@@ -13,9 +23,9 @@
       extensions = with pkgs.nur.repos.rycee.firefox-addons; [
         ublock-origin
         darkreader
-        privacy-badger
+        # privacy-badger
         multi-account-containers
-        decentraleyes
+        # decentraleyes
         # https-everywhere
         # bitwarden
         # clearurls
@@ -75,6 +85,7 @@
       };
     };
   };
+
   programs.fish = {
     enable = true;
     shellAliases = {
@@ -107,12 +118,14 @@
       ks = "kubectl config set-context --current --namespace";
     };
   };
+
   programs.tmux = {
     enable = true;
     keyMode = "vi";
     historyLimit = 50000;
     extraConfig = builtins.readFile ../dotfiles/tmux.conf;
   };
+
   programs.helix = {
     enable = true;
     settings = {
@@ -153,71 +166,13 @@
       ];
     };
   };
+
   home.sessionVariables = {
     EDITOR = "hx";
     LESS = "-SRXFi";
   };
-  programs.alacritty.enable = true;
 
-  programs.i3status-rust = {
-    enable = true;
-    bars = {
-      top = {
-        blocks = [
-          {
-            block = "net";
-            device = "enp4s0";
-          }
-          {
-            block = "disk_space";
-            path = "/";
-            info_type = "available";
-            interval = 60;
-            warning = 20.0;
-            alert = 10.0;
-          }
-          {
-            block = "memory";
-            format = "$icon $mem_used_percents";
-          }
-          {
-            block = "cpu";
-            interval = 1;
-          }
-          {
-            block = "load";
-            interval = 1;
-            format = "$icon $1m";
-          }
-          {
-            block = "sound";
-            click = [
-              {
-                button = "left";
-                cmd = "pavucontrol --tab=3";
-              }
-            ];
-          }
-          {
-            block = "time";
-            interval = 5;
-            format = "$timestamp.datetime(f:'%a %d/%m %T')";
-          }
-        ];
-        settings = {
-          theme = {
-            theme = "solarized-dark";
-            overrides = {
-              idle_bg = "#123456";
-              idle_fg = "#abcdef";
-            };
-          };
-        };
-        icons = "awesome5";
-        theme = "gruvbox-dark";
-      };
-    };
-  };
+  programs.alacritty.enable = true;
 
   programs.waybar = {
     enable = true;
@@ -440,7 +395,7 @@
       # Mod+Tab { focus-workspace-previous; }
 
       "Mod+Comma".action.consume-window-into-column = {};
-      "Mod+Period".action.expel-window-from-column = {};
+      "Mod+Shift+Comma".action.expel-window-from-column = {};
 
       # There are also commands that consume or expel a single window to the side.
       # Mod+BracketLeft  { consume-or-expel-window-left; }
@@ -480,9 +435,11 @@
       "Alt+Print".action.screenshot-window = {};
     };
   };
+
   programs.fuzzel = {
     enable = true;
   };
+
   gtk = {
     enable = true;
     theme = {

@@ -391,7 +391,6 @@
       };
       pathsToLink = [
         "/libexec"
-        "/share/nix-direnv"
       ];
       systemPackages = with pkgs; [
         xwayland-satellite
@@ -404,8 +403,6 @@
         iftop
         jq
         htop
-        direnv
-        nix-direnv
         git
         inotify-tools
         binutils
@@ -462,7 +459,6 @@
     nixpkgs = {
       overlays = [
         (self: super: {
-          # nix-direnv = super.nix-direnv.override { enableFlakes = true; };
         })
         inputs.nix-snapshotter.overlays.default 
         inputs.nur.overlay
@@ -488,7 +484,7 @@
       package = pkgs.nixFlakes;
 
       settings = {
-        max-jobs = lib.mkDefault 4;
+        max-jobs = lib.mkDefault 8;
         sandbox = true;
         trusted-users = [ "@wheel" ];
         allowed-users = [ "@wheel" ];
@@ -503,7 +499,7 @@
       gc = {
         automatic = true;
         dates = "weekly";
-        options = "--delete-older-than 365d";
+        options = "--delete-older-than 30d"; # or +5
       };
       optimise = {
         automatic = true;
