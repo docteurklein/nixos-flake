@@ -1,475 +1,554 @@
-{ config, lib, pkgs, ... }: {
-  home.stateVersion = "23.05";
-  programs.home-manager.enable = true;
+{ inputs, config, osConfig, lib, pkgs, ... }: {
 
-  programs.git = {
-    enable = true;
-    userName = "Florian Klein";
-    userEmail = "florian.klein@free.fr";
-    extraConfig = {
-      init.defaultBranch = "main";
+  # imports = [ inputs.homeage.homeManagerModules.homeage ];
+
+  config = {
+    # age = {
+    #   # identityPaths = ["~/.ssh/id_ed25519"];
+    #   secrets.email.file = ../secrets/email.age;
+    # };
+
+    # homeage = {
+    #   identityPaths = [ "~/.ssh/id_ed25519" ];
+    #   installationType = "systemd";
+    #   file."email" = {
+    #     source = ../secrets/email.age;
+    #   };
+    # };
+
+    home.stateVersion = "23.05"; # keep to lowest possible to prove BC
+    programs.home-manager.enable = true;
+
+    # programs.git.iniContent."sendemail.free".smtpUser = lib.mkForce "florian.klein";
+    programs.git = {
+      enable = true;
+      userName = "Florian Klein";
+      userEmail = "florian.klein@free.fr";
+      extraConfig = {
+        init.defaultBranch = "main";
+      };
     };
-  };
 
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-  };
+    programs.direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
 
-  programs.firefox = {
-    enable = true;
-    profiles.main = {
-      isDefault = true;
-      extensions = with pkgs.nur.repos.rycee.firefox-addons; [
-        ublock-origin
-        darkreader
-        # privacy-badger
-        multi-account-containers
-        # decentraleyes
-        # https-everywhere
-        # bitwarden
-        # clearurls
-        # duckduckgo-privacy-essentials
-        # floccus
-        # ghostery
-        # languagetool
-        # disconnect
-      ];
+    programs.aerc = {
+      enable = true;
+      extraConfig.general.unsafe-accounts-conf = true;
+    };
+
+    accounts.email.accounts.free = {
+      realName = "Florian Klein";
+      userName = "florian.klein";
+      passwordCommand = "cat /run/user/1000/email";
+      address = "florian.klein@free.fr";
+      # neomutt.mailboxType = "imap";
+      aerc.enable = true;
+      primary = true;
+      smtp = {
+        host = "smtp.free.fr";
+        port = 465;
+        tls.enable = true;
+      };
+      imap = {
+        host = "imap.free.fr";
+        port = 993;
+        tls.enable = true;
+      };
+    };
+
+    programs.firefox = {
+      enable = true;
+      profiles.main = {
+        isDefault = true;
+        extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+          ublock-origin
+          darkreader
+          # privacy-badger
+          multi-account-containers
+          # decentraleyes
+          # https-everywhere
+          # bitwarden
+          # clearurls
+          # duckduckgo-privacy-essentials
+          # floccus
+          # ghostery
+          # languagetool
+          # disconnect
+        ];
+        settings = {
+          # "browser.startup.homepage" = "https://nixos.org";
+          "browser.search.region" = "GB";
+          "browser.search.isUS" = false;
+          "distribution.searchplugins.defaultLocale" = "en-GB";
+          "general.useragent.locale" = "en-GB";
+          "browser.bookmarks.showMobileBookmarks" = true;
+          "browser.newtabpage.pinned" = [{
+            title = "NixOS";
+            url = "https://nixos.org";
+          }];
+        };
+        search = {
+          default = "DuckDuckGo";
+          force = true;
+          engines = {
+            "openstreetmap" = {
+              urls = [{
+                template = "https://www.openstreetmap.org/search";
+                params = [
+                  { name = "query"; value = "{searchTerms}"; }
+                ];
+              }];
+              definedAliases = [ "map!" ];
+            };
+            "Nix Packages" = {
+              icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+              urls = [{
+                template = "https://search.nixos.org/packages";
+                params = [
+                  { name = "type"; value = "packages"; }
+                  { name = "query"; value = "{searchTerms}"; }
+                ];
+              }];
+              definedAliases = [ "np!" ];
+            };
+            "Nix Options" = {
+              icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
+              urls = [{
+                template = "https://search.nixos.org/options";
+                params = [
+                  { name = "type"; value = "options"; }
+                  { name = "query"; value = "{searchTerms}"; }
+                ];
+              }];
+              definedAliases = [ "no!" ];
+            };
+            "NixOS Wiki" = {
+              urls = [{ template = "https://nixos.wiki/index.php?search={searchTerms}"; }];
+              iconUpdateURL = "https://nixos.wiki/favicon.png";
+              updateInterval = 24 * 60 * 60 * 1000; # every day
+              definedAliases = [ "nw!" ];
+            };
+            "Bing".metaData.hidden = true;
+            "Google".metaData.alias = "g!";
+          };
+        };
+      };
+    };
+
+    programs.fish = {
+      enable = true;
+      shellAliases = {
+        n = "nix";
+        ll = "ls -Alh";
+        s = "sudo systemctl";
+        us = "systemctl --user";
+        j = "sudo journalctl";
+        uj = "journalctl --user";
+        d = "docker";
+        dc = "docker compose";
+        dr = "docker run --rm it";
+        dcr = "docker compose run --rm";
+        dce = "docker compose exec";
+        v = "vim";
+        g = "git";
+        gc = "git commit";
+        gd = "git diff";
+        gds = "git diff --staged";
+        gs = "git status";
+        gr = "git restore";
+        gl = "git log";
+        gpl = "git pull";
+        gpr = "git pull --rebase";
+        grs = "git restore --staged";
+        gph = "git push --force-with-lease";
+        k = "kubectl";
+        kg = "kubectl get";
+        kd = "kubectl describe";
+        ke = "kubectl exec -it";
+        kl = "kubectl logs --tail=1 -f";
+        ks = "kubectl config set-context --current --namespace";
+      };
+    };
+
+    programs.tmux = {
+      enable = true;
+      keyMode = "vi";
+      historyLimit = 50000;
+      extraConfig = builtins.readFile ../dotfiles/tmux.conf;
+    };
+
+    programs.helix = {
+      enable = true;
       settings = {
-        # "browser.startup.homepage" = "https://nixos.org";
-        "browser.search.region" = "GB";
-        "browser.search.isUS" = false;
-        "distribution.searchplugins.defaultLocale" = "en-GB";
-        "general.useragent.locale" = "en-GB";
-        "browser.bookmarks.showMobileBookmarks" = true;
-        "browser.newtabpage.pinned" = [{
-          title = "NixOS";
-          url = "https://nixos.org";
-        }];
+        editor = {
+          completion-trigger-len = 0;
+          completion-replace = false;
+          cursorline = true;
+          cursorcolumn = true;
+          true-color = true;
+          undercurl = true;
+          color-modes = true;
+          cursor-shape = {
+            insert = "bar";
+            select = "underline";
+          };
+        };
+        keys.insert.j = {
+          j = "normal_mode"; # Maps `jj` to exit insert mode
+        };
+        keys.normal = {
+          space.F = "file_picker_in_current_buffer_directory";
+        };
       };
-      search = {
-        default = "DuckDuckGo";
-        force = true;
-        engines = {
-          "Nix Packages" = {
-            icon = "''${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-            urls = [{
-              template = "https://search.nixos.org/packages";
-              params = [
-                { name = "type"; value = "packages"; }
-                { name = "query"; value = "{searchTerms}"; }
-              ];
-            }];
-            definedAliases = [ "np!" ];
-          };
-          "Nix Options" = {
-            icon = "''${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
-            urls = [{
-              template = "https://search.nixos.org/options";
-              params = [
-                { name = "type"; value = "options"; }
-                { name = "query"; value = "{searchTerms}"; }
-              ];
-            }];
-            definedAliases = [ "no!" ];
-          };
-          "NixOS Wiki" = {
-            urls = [{ template = "https://nixos.wiki/index.php?search={searchTerms}"; }];
-            iconUpdateURL = "https://nixos.wiki/favicon.png";
-            updateInterval = 24 * 60 * 60 * 1000; # every day
-            definedAliases = [ "@nw" ];
-          };
-          "Bing".metaData.hidden = true;
-          "Google".metaData.alias = "g!";
+      languages = {
+        language-server.phpactor = {
+          command = "phpactor";
+          args = [ "language-server" ];
+        };
+        language = [
+          {
+            name = "rust";
+            auto-format = false;
+          }
+          {
+            name = "php";
+            language-servers = [ "phpactor" ];
+          }
+        ];
+      };
+    };
+
+    home.sessionVariables = {
+      EDITOR = "hx";
+      LESS = "-SRXFi";
+    };
+
+    programs.alacritty.enable = true;
+
+    programs.waybar = {
+      enable = true;
+      systemd.enable = true;
+      settings.mainBar = {
+        layer = "top";
+        position = "top";
+        height = 30;
+        output = [
+          "DP-3"
+        ];
+        modules-right = [ "cpu" "memory" "disk" "network#dl" "network#ul" "temperature" "clock#date" "clock#time" ];
+
+        disk = {
+          format = "{percentage_used}%";
+        };
+        "network#dl" = {
+          format = "DL: {bandwidthDownBytes}";
+        };
+        "network#ul" = {
+          format = "UL: {bandwidthUpBytes}";
+        };
+        "clock#date" = {
+          format = "{:%a %d/%m}";
         };
       };
     };
-  };
 
-  programs.fish = {
-    enable = true;
-    shellAliases = {
-      n = "nix";
-      ll = "ls -Alh";
-      s = "sudo systemctl";
-      j = "sudo journalctl";
-      d = "docker";
-      dc = "docker-compose";
-      dr = "docker run --rm it";
-      dcr = "docker-compose run --rm";
-      dce = "docker-compose exec";
-      v = "vim";
-      g = "git";
-      gc = "git commit";
-      gd = "git diff";
-      gds = "git diff --staged";
-      gs = "git status";
-      gr = "git restore";
-      gl = "git log";
-      gpl = "git pull";
-      gpr = "git pull --rebase";
-      grs = "git restore --staged";
-      gph = "git push --force-with-lease";
-      k = "kubectl";
-      kg = "kubectl get";
-      kd = "kubectl describe";
-      ke = "kubectl exec -it";
-      kl = "kubectl logs --tail=1 -f";
-      ks = "kubectl config set-context --current --namespace";
+    systemd.user.services."xwayland-satellite" = {
+      Install = {
+        WantedBy = [ "graphical-session.target" ];
+      };
+
+      Unit = {
+        Description = "xwayland-satellite sidecar service after niri starts";
+        PartOf = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+        Requisite = [ "graphical-session.target" ];
+      };
+
+      Service = {
+        ExecStart = "${pkgs.xwayland-satellite}/bin/xwayland-satellite";
+        Restart = "on-failure";
+      };
     };
-  };
 
-  programs.tmux = {
-    enable = true;
-    keyMode = "vi";
-    historyLimit = 50000;
-    extraConfig = builtins.readFile ../dotfiles/tmux.conf;
-  };
-
-  programs.helix = {
-    enable = true;
-    settings = {
-      editor = {
-        completion-trigger-len = 0;
-        completion-replace = false;
-        cursorline = true;
-        cursorcolumn = true;
-        true-color = true;
-        undercurl = true;
-        color-modes = true;
-        cursor-shape = {
-          insert = "bar";
-          select = "underline";
+    programs.niri.settings = {
+      environment = {
+          DISPLAY = ":0";
+      };
+      # spawn-at-startup = [
+      #   {
+      #     command = ["waybar"];
+      #   }
+      # ];
+      input.keyboard = {
+        xkb = {
+          layout  = "fr";
+          variant = "bepo";
+          # options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
         };
+        repeat-delay = 200;
+        repeat-rate = 60;
       };
-      keys.insert.j = {
-        j = "normal_mode"; # Maps `jj` to exit insert mode
+      outputs."edP-1" = {
+        scale = 2.0;
       };
-      keys.normal = {
-        space.F = "file_picker_in_current_buffer_directory";
+      binds = {
+        "Mod+D".action.spawn = "fuzzel";
+        "Mod+Q".action.close-window = {};
+        "Mod+Shift+Q".action.quit.skip-confirmation = true;
+        "XF86AudioRaiseVolume" = {
+          allow-when-locked = true;
+          action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+" ];
+        };
+        "XF86AudioLowerVolume" = {
+          allow-when-locked = true;
+          action.spawn = ["wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"];
+        };
+        "XF86AudioMute" = {
+          allow-when-locked = true;
+          action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];
+        };
+        "XF86AudioMicMute" = {
+          allow-when-locked = true;
+          action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
+        };
+        "Mod+Left".action.focus-column-left = {};
+        "Mod+Down".action.focus-window-down = {};
+        "Mod+Up".action.focus-window-up = {};
+        "Mod+Right".action.focus-column-right = {};
+        "Mod+H".action.focus-column-left = {};
+        "Mod+J".action.focus-window-down = {};
+        "Mod+K".action.focus-window-up = {};
+        "Mod+L".action.focus-column-right = {};
+
+        "Mod+Ctrl+Left".action.move-column-left = {};
+        "Mod+Ctrl+Down".action.move-window-down = {};
+        "Mod+Ctrl+Up".action.move-window-up = {};
+        "Mod+Ctrl+Right".action.move-column-right = {};
+        "Mod+Ctrl+H".action.move-column-left = {};
+        "Mod+Ctrl+J".action.move-window-down = {};
+        "Mod+Ctrl+K".action.move-window-up = {};
+        "Mod+Ctrl+L".action.move-column-right = {};
+
+        # Alternative commands that move across workspaces when reaching
+        # the first or last window in a column.
+        # Mod+J     { focus-window-or-workspace-down; }
+        # Mod+K     { focus-window-or-workspace-up; }
+        # Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
+        # Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
+
+        "Mod+Home".action.focus-column-first = {};
+        "Mod+End".action.focus-column-last = {};
+        "Mod+Ctrl+Home".action.move-column-to-first = {};
+        "Mod+Ctrl+End".action.move-column-to-last = {};
+
+        "Mod+Shift+Left".action.focus-monitor-left = {};
+        "Mod+Shift+Down".action.focus-monitor-down = {};
+        "Mod+Shift+Up".action.focus-monitor-up = {};
+        "Mod+Shift+Right".action.focus-monitor-right = {};
+        "Mod+Shift+H".action.focus-monitor-left = {};
+        "Mod+Shift+J".action.focus-monitor-down = {};
+        "Mod+Shift+K".action.focus-monitor-up = {};
+        "Mod+Shift+L".action.focus-monitor-right = {};
+
+        "Mod+Shift+Ctrl+Left".action.move-column-to-monitor-left = {};
+        "Mod+Shift+Ctrl+Down".action.move-column-to-monitor-down = {};
+        "Mod+Shift+Ctrl+Up".action.move-column-to-monitor-up = {};
+        "Mod+Shift+Ctrl+Right".action.move-column-to-monitor-right = {};
+        "Mod+Shift+Ctrl+H".action.move-column-to-monitor-left = {};
+        "Mod+Shift+Ctrl+J".action.move-column-to-monitor-down = {};
+        "Mod+Shift+Ctrl+K".action.move-column-to-monitor-up = {};
+        "Mod+Shift+Ctrl+L".action.move-column-to-monitor-right = {};
+
+        # Alternatively, there are commands to move just a single window:
+        # Mod+Shift+Ctrl+Left  { move-window-to-monitor-left; }
+        # ...
+
+        # And you can also move a whole workspace to another monitor:
+        # Mod+Shift+Ctrl+Left  { move-workspace-to-monitor-left; }
+        # ...
+
+        "Mod+Page_Down".action.focus-workspace-down = {};
+        "Mod+Page_Up".action.focus-workspace-up = {};
+        "Mod+U".action.focus-workspace-down = {};
+        "Mod+I".action.focus-workspace-up = {};
+        "Mod+Ctrl+Page_Down".action.move-column-to-workspace-down = {};
+        "Mod+Ctrl+Page_Up".action.move-column-to-workspace-up = {};
+        "Mod+Ctrl+U".action.move-column-to-workspace-down = {};
+        "Mod+Ctrl+I".action.move-column-to-workspace-up = {};
+
+        # Alternatively, there are commands to move just a single window:
+        # Mod+Ctrl+Page_Down { move-window-to-workspace-down; }
+        # ...
+
+        "Mod+Shift+Page_Down".action.move-workspace-down = {};
+        "Mod+Shift+Page_Up".action.move-workspace-up = {};
+        "Mod+Shift+U".action.move-workspace-down = {};
+        "Mod+Shift+I".action.move-workspace-up = {};
+
+        # You can bind mouse wheel scroll ticks using the following syntax.
+        # These binds will change direction based on the natural-scroll setting.
+        #
+        # To avoid scrolling through workspaces really fast, you can use
+        # the cooldown-ms property. The bind will be rate-limited to this value.
+        # You can set a cooldown on any bind, but it's most useful for the wheel.
+        # "Mod+Shift+Down" = {
+        #   cooldown-ms = 150;
+        #   action.focus-workspace-down = {};
+        # };
+        # "Mod+Shift+Up" = {
+        #   cooldown-ms = 150;
+        #   action.focus-workspace-up = {};
+        # };
+        "Mod+Ctrl+WheelScrollDown" = {
+          cooldown-ms = 150;
+          action.move-column-to-workspace-down = {};
+        };
+        "Mod+Ctrl+WheelScrollUp" = {
+          cooldown-ms = 150;
+          action.move-column-to-workspace-up = {};
+        };
+        "Mod+WheelScrollDown" = {
+          action.focus-column-right = {};
+        };
+        "Mod+WheelScrollUp" = {
+          action.focus-column-left = {};
+        };
+
+        "Mod+WheelScrollRight".action.focus-column-right = {};
+        "Mod+WheelScrollLeft".action.focus-column-left = {};
+        "Mod+Ctrl+WheelScrollRight".action.move-column-right = {};
+        "Mod+Ctrl+WheelScrollLeft".action.move-column-left = {};
+
+        # Usually scrolling up and down with Shift in applications results in
+        # horizontal scrolling; these binds replicate that.
+        "Mod+Shift+WheelScrollDown".action.focus-column-right = {};
+        "Mod+Shift+WheelScrollUp".action.focus-column-left = {};
+        "Mod+Ctrl+Shift+WheelScrollDown".action.move-column-right = {};
+        "Mod+Ctrl+Shift+WheelScrollUp".action.move-column-left = {};
+
+        # Similarly, you can bind touchpad scroll "ticks".
+        # Touchpad scrolling is continuous, so for these binds it is split into
+        # discrete intervals.
+        # These binds are also affected by touchpad's natural-scroll, so these
+        # example binds are "inverted", since we have natural-scroll enabled for
+        # touchpads by default.
+        # Mod+TouchpadScrollDown { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.02+"; }
+        # Mod+TouchpadScrollUp   { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.02-"; }
+
+        # You can refer to workspaces by index. However, keep in mind that
+        # niri is a dynamic workspace system, so these commands are kind of
+        # "best effort". Trying to refer to a workspace index bigger than
+        # the current workspace count will instead refer to the bottommost
+        # (empty) workspace.
+        #
+        # For example, with 2 workspaces + 1 empty, indices 3, 4, 5 and so on
+        # will all refer to the 3rd workspace.
+        "Mod+1".action.focus-workspace = 1;
+        "Mod+2".action.focus-workspace = 2;
+        "Mod+3".action.focus-workspace = 3;
+        "Mod+4".action.focus-workspace = 4;
+        "Mod+5".action.focus-workspace = 5;
+        "Mod+6".action.focus-workspace = 6;
+        "Mod+7".action.focus-workspace = 7;
+        "Mod+8".action.focus-workspace = 8;
+        "Mod+9".action.focus-workspace = 9;
+        "Mod+Ctrl+1".action.move-column-to-workspace = 1;
+        "Mod+Ctrl+2".action.move-column-to-workspace = 2;
+        "Mod+Ctrl+3".action.move-column-to-workspace = 3;
+        "Mod+Ctrl+4".action.move-column-to-workspace = 4;
+        "Mod+Ctrl+5".action.move-column-to-workspace = 5;
+        "Mod+Ctrl+6".action.move-column-to-workspace = 6;
+        "Mod+Ctrl+7".action.move-column-to-workspace = 7;
+        "Mod+Ctrl+8".action.move-column-to-workspace = 8;
+        "Mod+Ctrl+9".action.move-column-to-workspace = 9;
+
+        # Alternatively, there are commands to move just a single window:
+        # Mod+Ctrl+1 { move-window-to-workspace 1; }
+
+        # Switches focus between the current and the previous workspace.
+        # Mod+Tab { focus-workspace-previous; }
+
+        "Mod+Comma".action.consume-window-into-column = {};
+        "Mod+Shift+Comma".action.expel-window-from-column = {};
+
+        # There are also commands that consume or expel a single window to the side.
+        # Mod+BracketLeft  { consume-or-expel-window-left; }
+        # Mod+BracketRight { consume-or-expel-window-right; }
+
+        "Mod+R".action.switch-preset-column-width = {};
+        "Mod+Shift+R".action.reset-window-height = {};
+        "Mod+F".action.maximize-column = {};
+        "Mod+Shift+F".action.fullscreen-window = {};
+        "Mod+C".action.center-column = {};
+
+        # Finer width adjustments.
+        # This command can also:
+        # * set width in pixels: "1000"
+        # * adjust width in pixels: "-5" or "+5"
+        # * set width as a percentage of screen width: "25%"
+        # * adjust width as a percentage of screen width: "-10%" or "+10%"
+        # Pixel sizes use logical, or scaled, pixels. I.e. on an output with scale 2.0,
+        # set-column-width "100" will make the column occupy 200 physical screen pixels.
+        "Mod+Minus".action.set-column-width = "-10%";
+        "Mod+Equal".action.set-column-width = "+10%";
+
+        # Finer height adjustments when in column with other windows.
+        "Mod+Shift+Minus".action.set-window-height = "-10%";
+        "Mod+Shift+Equal".action.set-window-height = "+10%";
+
+        # Actions to switch layouts.
+        # Note: if you uncomment these, make sure you do NOT have
+        # a matching layout switch hotkey configured in xkb options above.
+        # Having both at once on the same hotkey will break the switching,
+        # since it will switch twice upon pressing the hotkey (once by xkb, once by niri).
+        # Mod+Space       { switch-layout "next"; }
+        # Mod+Shift+Space { switch-layout "prev"; }
+
+        "Print".action.screenshot = {};
+        "Ctrl+Print".action.screenshot-screen = {};
+        "Alt+Print".action.screenshot-window = {};
       };
     };
-    languages = {
-      language-server.phpactor = {
-        command = "phpactor";
-        args = [ "language-server" ];
-      };
-      language = [
-        {
-          name = "rust";
-          auto-format = false;
-        }
-        {
-          name = "php";
-          language-servers = [ "phpactor" ];
-        }
-      ];
+
+    programs.fuzzel = {
+      enable = true;
     };
+
+    gtk = {
+      enable = true;
+      theme = {
+        name = "Adwaita-dark";
+        # package = pkgs.gnome.gnome-themes-extra;
+      };
+
+      gtk3.extraConfig = {
+        Settings = ''
+          gtk-application-prefer-dark-theme=1
+        '';
+      };
+
+      gtk4.extraConfig = {
+        Settings = ''
+          gtk-application-prefer-dark-theme=1
+        '';
+      };
+    };
+    dconf.settings = {
+      "org/gnome/desktop/interface" = {
+        color-scheme = "prefer-dark";
+        gtk-theme = "Adwaita-dark";
+        enable-hot-corners = false;
+      };
+    };
+    home.sessionVariables = {
+      KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
+      GTK_THEME = "Adwaita:dark";
+    };
+
+    # home.packages = with pkgs; [
+    # ];
   };
-
-  home.sessionVariables = {
-    EDITOR = "hx";
-    LESS = "-SRXFi";
-  };
-
-  programs.alacritty.enable = true;
-
-  programs.waybar = {
-    enable = true;
-    settings.mainBar = {
-      layer = "top";
-      position = "top";
-      height = 30;
-      output = [
-        "DP-3"
-      ];
-      modules-right = [ "cpu" "memory" "disk" "network#dl" "network#ul" "temperature" "clock#date" "clock#time" ];
-
-      disk = {
-        format = "{percentage_used}%";
-      };
-      "network#dl" = {
-        format = "DL: {bandwidthDownBytes}";
-      };
-      "network#ul" = {
-        format = "UL: {bandwidthUpBytes}";
-      };
-      "clock#date" = {
-        format = "{:%a %d/%m}";
-      };
-    };
-  };
-
-  programs.niri.settings = {
-    spawn-at-startup = [
-      {
-        command = ["waybar"];
-      }
-    ];
-    input.keyboard = {
-      xkb = {
-        layout  = "fr";
-        variant = "bepo";
-        # options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
-      };
-      repeat-delay = 200;
-      repeat-rate = 60;
-    };
-    outputs."edP-1" = {
-      scale = 2.0;
-    };
-    binds = {
-      "Mod+D".action.spawn = "fuzzel";
-      "Mod+Shift+Q".action.quit.skip-confirmation = true;
-      "XF86AudioRaiseVolume" = {
-        allow-when-locked = true;
-        action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+" ];
-      };
-      "XF86AudioLowerVolume" = {
-        allow-when-locked = true;
-        action.spawn = ["wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1-"];
-      };
-      "XF86AudioMute" = {
-        allow-when-locked = true;
-        action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle" ];
-      };
-      "XF86AudioMicMute" = {
-        allow-when-locked = true;
-        action.spawn = [ "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle" ];
-      };
-      "Mod+Left".action.focus-column-left = {};
-      "Mod+Down".action.focus-window-down = {};
-      "Mod+Up".action.focus-window-up = {};
-      "Mod+Right".action.focus-column-right = {};
-      "Mod+H".action.focus-column-left = {};
-      "Mod+J".action.focus-window-down = {};
-      "Mod+K".action.focus-window-up = {};
-      "Mod+L".action.focus-column-right = {};
-
-      "Mod+Ctrl+Left".action.move-column-left = {};
-      "Mod+Ctrl+Down".action.move-window-down = {};
-      "Mod+Ctrl+Up".action.move-window-up = {};
-      "Mod+Ctrl+Right".action.move-column-right = {};
-      "Mod+Ctrl+H".action.move-column-left = {};
-      "Mod+Ctrl+J".action.move-window-down = {};
-      "Mod+Ctrl+K".action.move-window-up = {};
-      "Mod+Ctrl+L".action.move-column-right = {};
-
-      # Alternative commands that move across workspaces when reaching
-      # the first or last window in a column.
-      # Mod+J     { focus-window-or-workspace-down; }
-      # Mod+K     { focus-window-or-workspace-up; }
-      # Mod+Ctrl+J     { move-window-down-or-to-workspace-down; }
-      # Mod+Ctrl+K     { move-window-up-or-to-workspace-up; }
-
-      "Mod+Home".action.focus-column-first = {};
-      "Mod+End".action.focus-column-last = {};
-      "Mod+Ctrl+Home".action.move-column-to-first = {};
-      "Mod+Ctrl+End".action.move-column-to-last = {};
-
-      "Mod+Shift+Left".action.focus-monitor-left = {};
-      "Mod+Shift+Down".action.focus-monitor-down = {};
-      "Mod+Shift+Up".action.focus-monitor-up = {};
-      "Mod+Shift+Right".action.focus-monitor-right = {};
-      "Mod+Shift+H".action.focus-monitor-left = {};
-      "Mod+Shift+J".action.focus-monitor-down = {};
-      "Mod+Shift+K".action.focus-monitor-up = {};
-      "Mod+Shift+L".action.focus-monitor-right = {};
-
-      "Mod+Shift+Ctrl+Left".action.move-column-to-monitor-left = {};
-      "Mod+Shift+Ctrl+Down".action.move-column-to-monitor-down = {};
-      "Mod+Shift+Ctrl+Up".action.move-column-to-monitor-up = {};
-      "Mod+Shift+Ctrl+Right".action.move-column-to-monitor-right = {};
-      "Mod+Shift+Ctrl+H".action.move-column-to-monitor-left = {};
-      "Mod+Shift+Ctrl+J".action.move-column-to-monitor-down = {};
-      "Mod+Shift+Ctrl+K".action.move-column-to-monitor-up = {};
-      "Mod+Shift+Ctrl+L".action.move-column-to-monitor-right = {};
-
-      # Alternatively, there are commands to move just a single window:
-      # Mod+Shift+Ctrl+Left  { move-window-to-monitor-left; }
-      # ...
-
-      # And you can also move a whole workspace to another monitor:
-      # Mod+Shift+Ctrl+Left  { move-workspace-to-monitor-left; }
-      # ...
-
-      "Mod+Page_Down".action.focus-workspace-down = {};
-      "Mod+Page_Up".action.focus-workspace-up = {};
-      "Mod+U".action.focus-workspace-down = {};
-      "Mod+I".action.focus-workspace-up = {};
-      "Mod+Ctrl+Page_Down".action.move-column-to-workspace-down = {};
-      "Mod+Ctrl+Page_Up".action.move-column-to-workspace-up = {};
-      "Mod+Ctrl+U".action.move-column-to-workspace-down = {};
-      "Mod+Ctrl+I".action.move-column-to-workspace-up = {};
-
-      # Alternatively, there are commands to move just a single window:
-      # Mod+Ctrl+Page_Down { move-window-to-workspace-down; }
-      # ...
-
-      "Mod+Shift+Page_Down".action.move-workspace-down = {};
-      "Mod+Shift+Page_Up".action.move-workspace-up = {};
-      "Mod+Shift+U".action.move-workspace-down = {};
-      "Mod+Shift+I".action.move-workspace-up = {};
-
-      # You can bind mouse wheel scroll ticks using the following syntax.
-      # These binds will change direction based on the natural-scroll setting.
-      #
-      # To avoid scrolling through workspaces really fast, you can use
-      # the cooldown-ms property. The bind will be rate-limited to this value.
-      # You can set a cooldown on any bind, but it's most useful for the wheel.
-      # "Mod+Shift+Down" = {
-      #   cooldown-ms = 150;
-      #   action.focus-workspace-down = {};
-      # };
-      # "Mod+Shift+Up" = {
-      #   cooldown-ms = 150;
-      #   action.focus-workspace-up = {};
-      # };
-      "Mod+Ctrl+WheelScrollDown" = {
-        cooldown-ms = 150;
-        action.move-column-to-workspace-down = {};
-      };
-      "Mod+Ctrl+WheelScrollUp" = {
-        cooldown-ms = 150;
-        action.move-column-to-workspace-up = {};
-      };
-      "Mod+WheelScrollDown" = {
-        action.focus-column-right = {};
-      };
-      "Mod+WheelScrollUp" = {
-        action.focus-column-left = {};
-      };
-
-      "Mod+WheelScrollRight".action.focus-column-right = {};
-      "Mod+WheelScrollLeft".action.focus-column-left = {};
-      "Mod+Ctrl+WheelScrollRight".action.move-column-right = {};
-      "Mod+Ctrl+WheelScrollLeft".action.move-column-left = {};
-
-      # Usually scrolling up and down with Shift in applications results in
-      # horizontal scrolling; these binds replicate that.
-      "Mod+Shift+WheelScrollDown".action.focus-column-right = {};
-      "Mod+Shift+WheelScrollUp".action.focus-column-left = {};
-      "Mod+Ctrl+Shift+WheelScrollDown".action.move-column-right = {};
-      "Mod+Ctrl+Shift+WheelScrollUp".action.move-column-left = {};
-
-      # Similarly, you can bind touchpad scroll "ticks".
-      # Touchpad scrolling is continuous, so for these binds it is split into
-      # discrete intervals.
-      # These binds are also affected by touchpad's natural-scroll, so these
-      # example binds are "inverted", since we have natural-scroll enabled for
-      # touchpads by default.
-      # Mod+TouchpadScrollDown { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.02+"; }
-      # Mod+TouchpadScrollUp   { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.02-"; }
-
-      # You can refer to workspaces by index. However, keep in mind that
-      # niri is a dynamic workspace system, so these commands are kind of
-      # "best effort". Trying to refer to a workspace index bigger than
-      # the current workspace count will instead refer to the bottommost
-      # (empty) workspace.
-      #
-      # For example, with 2 workspaces + 1 empty, indices 3, 4, 5 and so on
-      # will all refer to the 3rd workspace.
-      "Mod+1".action.focus-workspace = 1;
-      "Mod+2".action.focus-workspace = 2;
-      "Mod+3".action.focus-workspace = 3;
-      "Mod+4".action.focus-workspace = 4;
-      "Mod+5".action.focus-workspace = 5;
-      "Mod+6".action.focus-workspace = 6;
-      "Mod+7".action.focus-workspace = 7;
-      "Mod+8".action.focus-workspace = 8;
-      "Mod+9".action.focus-workspace = 9;
-      "Mod+Ctrl+1".action.move-column-to-workspace = 1;
-      "Mod+Ctrl+2".action.move-column-to-workspace = 2;
-      "Mod+Ctrl+3".action.move-column-to-workspace = 3;
-      "Mod+Ctrl+4".action.move-column-to-workspace = 4;
-      "Mod+Ctrl+5".action.move-column-to-workspace = 5;
-      "Mod+Ctrl+6".action.move-column-to-workspace = 6;
-      "Mod+Ctrl+7".action.move-column-to-workspace = 7;
-      "Mod+Ctrl+8".action.move-column-to-workspace = 8;
-      "Mod+Ctrl+9".action.move-column-to-workspace = 9;
-
-      # Alternatively, there are commands to move just a single window:
-      # Mod+Ctrl+1 { move-window-to-workspace 1; }
-
-      # Switches focus between the current and the previous workspace.
-      # Mod+Tab { focus-workspace-previous; }
-
-      "Mod+Comma".action.consume-window-into-column = {};
-      "Mod+Shift+Comma".action.expel-window-from-column = {};
-
-      # There are also commands that consume or expel a single window to the side.
-      # Mod+BracketLeft  { consume-or-expel-window-left; }
-      # Mod+BracketRight { consume-or-expel-window-right; }
-
-      "Mod+R".action.switch-preset-column-width = {};
-      "Mod+Shift+R".action.reset-window-height = {};
-      "Mod+F".action.maximize-column = {};
-      "Mod+Shift+F".action.fullscreen-window = {};
-      "Mod+C".action.center-column = {};
-
-      # Finer width adjustments.
-      # This command can also:
-      # * set width in pixels: "1000"
-      # * adjust width in pixels: "-5" or "+5"
-      # * set width as a percentage of screen width: "25%"
-      # * adjust width as a percentage of screen width: "-10%" or "+10%"
-      # Pixel sizes use logical, or scaled, pixels. I.e. on an output with scale 2.0,
-      # set-column-width "100" will make the column occupy 200 physical screen pixels.
-      "Mod+Minus".action.set-column-width = "-10%";
-      "Mod+Equal".action.set-column-width = "+10%";
-
-      # Finer height adjustments when in column with other windows.
-      "Mod+Shift+Minus".action.set-window-height = "-10%";
-      "Mod+Shift+Equal".action.set-window-height = "+10%";
-
-      # Actions to switch layouts.
-      # Note: if you uncomment these, make sure you do NOT have
-      # a matching layout switch hotkey configured in xkb options above.
-      # Having both at once on the same hotkey will break the switching,
-      # since it will switch twice upon pressing the hotkey (once by xkb, once by niri).
-      # Mod+Space       { switch-layout "next"; }
-      # Mod+Shift+Space { switch-layout "prev"; }
-
-      "Print".action.screenshot = {};
-      "Ctrl+Print".action.screenshot-screen = {};
-      "Alt+Print".action.screenshot-window = {};
-    };
-  };
-
-  programs.fuzzel = {
-    enable = true;
-  };
-
-  gtk = {
-    enable = true;
-    theme = {
-      name = "Materia-dark";
-      package = pkgs.materia-theme;
-    };
-
-    gtk3.extraConfig = {
-      Settings = ''
-        gtk-application-prefer-dark-theme=1
-      '';
-    };
-
-    gtk4.extraConfig = {
-      Settings = ''
-        gtk-application-prefer-dark-theme=1
-      '';
-    };
-  };
-  dconf.settings = {
-    "org/gnome/desktop/interface" = {
-      color-scheme = "prefer-dark";
-      enable-hot-corners = false;
-    };
-  };
-  home.sessionVariables = {
-    KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
-    GTK_THEME = "Materia-Dark";
-  };
-
-  # home.packages = with pkgs; [
-  # ];
 }

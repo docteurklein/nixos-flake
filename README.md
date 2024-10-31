@@ -8,11 +8,6 @@ nix run --inputs-from . github:numtide/nixos-anywhere -- root@192.168.1.14 \
     --flake github:docteurklein/nixos-flake#florian-laptop
 ```
 
-
-## later reconfig
-
-    nix run .#apps.nixinate.florian-laptop
-
 ## home-manager on non-nixos
 
-    nix run home-manager/release-23.05 -- switch --flake .
+    nix run home-manager/master -- switch --flake .

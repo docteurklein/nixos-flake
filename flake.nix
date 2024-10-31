@@ -22,12 +22,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       url = "github:nix-community/home-manager/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    homeage = {
+      url = "github:jordanisaacs/homeage";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flake-parts = {
@@ -40,15 +40,12 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, nix-snapshotter, nur, ... }:
+  outputs = inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
         ./homeConfigurations/florian.nix
       ];
       systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
-      # perSystem = { config, self', inputs', pkgs, system, ... }: {
-      #   # packages.default = pkgs.hello;
-      # };
     };
 }

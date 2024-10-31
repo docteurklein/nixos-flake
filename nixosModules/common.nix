@@ -1,21 +1,30 @@
-{ inputs, config, pkgs, lib, ... }: {
-
+{ inputs, config, pkgs, lib, system, ... }: {
   imports = [
     inputs.nix-snapshotter.nixosModules.default
     inputs.niri.nixosModules.niri
   ];
 
-  options = {
-    disk = lib.mkOption {
-      type = lib.types.str;
+  options = with lib.types; {
+    resources = lib.mkOption {
+      type = submodule {
+        options = {
+          ram = lib.mkOption {
+            type = int;
+          };
+          disk = lib.mkOption {
+            type = str;
+          };
+        };
+      };
     };
   };
 
   config = {
+
     disko.devices = {
-      disk.${config.disk} = {
+      disk.${config.resources.disk} = {
         type = "disk";
-        device = config.disk;
+        device = config.resources.disk;
         content = {
           type = "gpt";
           partitions = {
@@ -82,14 +91,6 @@
       loader = {
         systemd-boot.enable = true;
         efi.canTouchEfiVariables = true;
-        # grub = {
-        #   enable = true;
-        #   configurationLimit = 10;
-        #   enableCryptodisk = true;
-        #   device = config.disk;
-        #   # efiSupport = true;
-        #   # efiInstallAsRemovable = true;
-        # };
       };
       extraModulePackages = [ ];
       kernelModules = [ "dm-snapshot" ];
@@ -110,6 +111,7 @@
     #   };
     # };
 
+    # age.secrets.wireless.file = ../secrets/wireless.age;
     networking = {
       # nameservers = [ "1.1.1.1" "8.8.8.8" ];
       useDHCP = true;
@@ -233,20 +235,24 @@
           pg_ivm
           pg_hint_plan
         ];
-        settings = {
+        settings = let
+          ram = config.resources.ram * 0.75; ## @TODO use config.systemd.services.postgresql.serviceConfig.MemoryMax
+        in rec {
           log_connections = true;
           log_statement = "all";
           logging_collector = true;
           log_disconnections = true;
           log_destination = lib.mkForce "syslog";
+          log_temp_files = 0;
           wal_level = "logical";
           #"auto_explain.log_nested_statements" = true;
           #"auto_explain.log_min_duration" = 0;
           shared_preload_libraries = "auto_explain,pg_hint_plan,pg_stat_statements";
           max_connections = 100;
-          shared_buffers = "3GB"; # 1/4th of RAM
-          work_mem = "30MB"; # 1/4th of RAM / max_connections
-          effective_cache_size = "9GB"; # 75% of total RAM
+          # shared_buffers = "${toString (builtins.ceil (ram / 4) / 1000 / 1000)} GB"; # 1/4th of RAM
+          # work_mem =  builtins.ceil ((ram / max_connections) / 4); # 1/4th of RAM / max_connections
+          # # effective_cache_size = builtins.ceil(ram * 0.75); # 75% of total RAM
+          # effective_cache_size = "${toString (builtins.ceil (ram * 0.75) / 1000 / 1000)} GB"; # 1/4th of RAM
           maintenance_work_mem = "1GB";
           checkpoint_completion_target = 0.9;
           wal_buffers = "16MB";
@@ -263,9 +269,6 @@
       };
     };
 
-    environment.sessionVariables = {
-      KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
-    };
     # networking.extraHosts = "127.0.0.1 api.kube";
 
     services.kubernetes = {
@@ -309,9 +312,9 @@
     
     services.greetd = {
       enable = true;
-      settings = rec {
+      settings = {
         default_session = {
-          command = "${pkgs.niri}/bin/niri --session";
+          command = "${pkgs.niri}/bin/niri-session";
           user = "florian";
         };
       };
@@ -323,7 +326,7 @@
     };
 
     systemd.services.postgresql.serviceConfig = {
-      MemoryMax = "12G";
+      # MemoryMax = builtins.ceil (config.resources.ram * 0.75);
     };
 
     virtualisation = {
@@ -373,21 +376,16 @@
     };
     programs.dconf.enable = true;
 
-    systemd.timers."wallpaper" = {
-      wantedBy = [ "timers.target" ];
-        timerConfig = {
-          OnBootSec = "5m";
-          OnUnitActiveSec = "5m";
-          Unit = "wallpaper.service";
-        };
-    };
-
     environment = {
+      sessionVariables = {
+      };
       variables = {
+        # KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
         EDITOR = "hx";
         LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
         LESS = "-SRXFi";
-        WLR_NO_HARDWARE_CURSORS = "1";
+        # WLR_NO_HARDWARE_CURSORS = "1";
+        NIXPKGS_ALLOW_UNFREE = "1";
       };
       pathsToLink = [
         "/libexec"
@@ -462,6 +460,7 @@
         })
         inputs.nix-snapshotter.overlays.default 
         inputs.nur.overlay
+        inputs.niri.overlays.niri
       ];
       config = {
         allowBroken = true;
@@ -472,6 +471,7 @@
     };
 
     nix = {
+      package = pkgs.nixFlakes;
       settings = {
         substituters = [
           "https://cache.nixos.org"
@@ -480,19 +480,16 @@
         trusted-public-keys = [
           "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         ];
-      };
-      package = pkgs.nixFlakes;
-
-      settings = {
         max-jobs = lib.mkDefault 8;
         sandbox = true;
         trusted-users = [ "@wheel" ];
         allowed-users = [ "@wheel" ];
         auto-optimise-store = true;
         allow-import-from-derivation = true;
+        accept-flake-config = true;
       };
       extraOptions = ''
-        experimental-features = nix-command flakes repl-flake
+        experimental-features = nix-command flakes
         keep-outputs = true
         keep-derivations = true
       '';
