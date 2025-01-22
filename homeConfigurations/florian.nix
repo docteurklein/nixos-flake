@@ -19,7 +19,7 @@
         inputs.niri.homeModules.niri
         ../homeModules/default.nix
         ({...}: {
-          nixpkgs.overlays = [ inputs.nur.overlay ];
+          nixpkgs.overlays = [ inputs.nur.overlays.default ];
           home.username = "florian";
           home.homeDirectory = "/home/florian";
         })

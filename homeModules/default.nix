@@ -208,6 +208,7 @@
           command = "phpactor";
           args = [ "language-server" ];
         };
+        # language-server.rust-analyzer.config.check.command = "cargo clippy";
         language = [
           {
             name = "rust";
@@ -286,7 +287,7 @@
         xkb = {
           layout  = "fr";
           variant = "bepo";
-          # options "grp:win_space_toggle,compose:ralt,ctrl:nocaps"
+          # options = "grp:alt_space_toggle";
         };
         repeat-delay = 200;
         repeat-rate = 60;
@@ -297,7 +298,7 @@
       binds = {
         "Mod+D".action.spawn = "fuzzel";
         "Mod+Q".action.close-window = {};
-        "Mod+Shift+Q".action.quit.skip-confirmation = true;
+        # "Mod+Shift+Q".action.quit = true;
         "XF86AudioRaiseVolume" = {
           allow-when-locked = true;
           action.spawn = [ "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.1+" ];
@@ -344,14 +345,14 @@
         "Mod+Ctrl+Home".action.move-column-to-first = {};
         "Mod+Ctrl+End".action.move-column-to-last = {};
 
-        "Mod+Shift+Left".action.focus-monitor-left = {};
-        "Mod+Shift+Down".action.focus-monitor-down = {};
-        "Mod+Shift+Up".action.focus-monitor-up = {};
-        "Mod+Shift+Right".action.focus-monitor-right = {};
+        # "Mod+Shift+Left".action.focus-monitor-left = {};
+        # "Mod+Shift+Down".action.focus-monitor-down = {};
+        # "Mod+Shift+Up".action.focus-monitor-up = {};
+        # "Mod+Shift+Right".action.focus-monitor-right = {};
         "Mod+Shift+H".action.focus-monitor-left = {};
         "Mod+Shift+J".action.focus-monitor-down = {};
-        "Mod+Shift+K".action.focus-monitor-up = {};
-        "Mod+Shift+L".action.focus-monitor-right = {};
+        # "Mod+Shift+K".action.focus-monitor-up = {};
+        # "Mod+Shift+L".action.focus-monitor-right = {};
 
         "Mod+Shift+Ctrl+Left".action.move-column-to-monitor-left = {};
         "Mod+Shift+Ctrl+Down".action.move-column-to-monitor-down = {};
@@ -383,9 +384,9 @@
         # Mod+Ctrl+Page_Down { move-window-to-workspace-down; }
         # ...
 
-        "Mod+Shift+Page_Down".action.move-workspace-down = {};
-        "Mod+Shift+Page_Up".action.move-workspace-up = {};
-        "Mod+Shift+U".action.move-workspace-down = {};
+        # "Mod+Shift+Page_Down".action.move-workspace-down = {};
+        # "Mod+Shift+Page_Up".action.move-workspace-up = {};
+        # "Mod+Shift+U".action.move-workspace-down = {};
         "Mod+Shift+I".action.move-workspace-up = {};
 
         # You can bind mouse wheel scroll ticks using the following syntax.
@@ -402,22 +403,22 @@
         #   cooldown-ms = 150;
         #   action.focus-workspace-up = {};
         # };
-        "Mod+Ctrl+WheelScrollDown" = {
-          cooldown-ms = 150;
-          action.move-column-to-workspace-down = {};
-        };
+        # "Mod+Ctrl+WheelScrollDown" = {
+        #   cooldown-ms = 150;
+        #   action.move-column-to-workspace-down = {};
+        # };
         "Mod+Ctrl+WheelScrollUp" = {
           cooldown-ms = 150;
           action.move-column-to-workspace-up = {};
         };
-        "Mod+WheelScrollDown" = {
-          action.focus-column-right = {};
-        };
+        # "Mod+WheelScrollDown" = {
+        #   action.focus-column-right = {};
+        # };
         "Mod+WheelScrollUp" = {
           action.focus-column-left = {};
         };
 
-        "Mod+WheelScrollRight".action.focus-column-right = {};
+        # "Mod+WheelScrollRight".action.focus-column-right = {};
         "Mod+WheelScrollLeft".action.focus-column-left = {};
         "Mod+Ctrl+WheelScrollRight".action.move-column-right = {};
         "Mod+Ctrl+WheelScrollLeft".action.move-column-left = {};
@@ -479,7 +480,7 @@
         # Mod+BracketRight { consume-or-expel-window-right; }
 
         "Mod+R".action.switch-preset-column-width = {};
-        "Mod+Shift+R".action.reset-window-height = {};
+        # "Mod+Shift+R".action.reset-window-height = {};
         "Mod+F".action.maximize-column = {};
         "Mod+Shift+F".action.fullscreen-window = {};
         "Mod+C".action.center-column = {};
@@ -496,7 +497,7 @@
         "Mod+Equal".action.set-column-width = "+10%";
 
         # Finer height adjustments when in column with other windows.
-        "Mod+Shift+Minus".action.set-window-height = "-10%";
+        # "Mod+Shift+Minus".action.set-window-height = "-10%";
         "Mod+Shift+Equal".action.set-window-height = "+10%";
 
         # Actions to switch layouts.

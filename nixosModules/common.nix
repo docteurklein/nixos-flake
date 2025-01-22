@@ -157,7 +157,7 @@
         settings = {
           server = {
             http_addr = "127.0.0.1";
-            http_port = 3000;
+            http_port = 3001;
             domain = "localhost";
             protocol = "http";
             # cert_key = "/etc/nixos/dck-home.freeddns.org-key.pem";
@@ -230,7 +230,7 @@
       postgresql = {
         enable = true;
         package = pkgs.postgresql_15;
-        extraPlugins = with pkgs.postgresql15Packages; [
+        extensions = with pkgs.postgresql15Packages; [
           wal2json
           pg_ivm
           pg_hint_plan
@@ -346,6 +346,12 @@
         enable = true;
         wheelNeedsPassword = false;
       };
+      wrappers.wshowkeys = {
+        setuid = true;
+        owner = "root";
+        group = "root";
+        source = "${pkgs.wshowkeys}/bin/wshowkeys";
+      };
     };
 
     users = {
@@ -459,7 +465,7 @@
         (self: super: {
         })
         inputs.nix-snapshotter.overlays.default 
-        inputs.nur.overlay
+        inputs.nur.overlays.default
         inputs.niri.overlays.niri
       ];
       config = {
@@ -471,7 +477,7 @@
     };
 
     nix = {
-      package = pkgs.nixFlakes;
+      package = pkgs.nixVersions.stable;
       settings = {
         substituters = [
           "https://cache.nixos.org"
@@ -481,7 +487,7 @@
           "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         ];
         max-jobs = lib.mkDefault 8;
-        sandbox = true;
+        sandbox = false;
         trusted-users = [ "@wheel" ];
         allowed-users = [ "@wheel" ];
         auto-optimise-store = true;
@@ -489,7 +495,7 @@
         accept-flake-config = true;
       };
       extraOptions = ''
-        experimental-features = nix-command flakes
+        experimental-features = nix-command flakes impure-derivations ca-derivations
         keep-outputs = true
         keep-derivations = true
       '';

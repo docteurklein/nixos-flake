@@ -5,7 +5,6 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.users.florian = import ../homeModules/default.nix;
-  nixpkgs.config.allowUnfree = true;
   nix.registry = {
     nixpkgs.flake = inputs.nixpkgs;
     self.flake = inputs.self;
@@ -19,7 +18,7 @@
     enable = true;
     enable32Bit = true;
   };
-  hardware.pulseaudio.support32Bit = config.hardware.pulseaudio.enable;
+  services.pulseaudio.support32Bit = config.hardware.pulseaudio.enable;
 
   services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia = {
@@ -28,7 +27,7 @@
     powerManagement.finegrained = false;
     open = false;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.vulkan_beta;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.kernelModules = [ "kvm-intel" ];

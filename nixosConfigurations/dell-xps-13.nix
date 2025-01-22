@@ -1,5 +1,5 @@
 { withSystem, inputs, self', ... }: {
-  flake.nixosConfigurations."florian-desktop" = withSystem "x86_64-linux" (ctx@{ self', config, inputs', system, ... }:
+  flake.nixosConfigurations."dell-xps-13" = withSystem "x86_64-linux" (ctx@{ self', config, inputs', system, ... }:
     inputs.nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs; };
@@ -8,7 +8,7 @@
         inputs.home-manager.nixosModules.home-manager
         inputs.disko.nixosModules.disko
         inputs.nix-snapshotter.nixosModules.default
-        ../nixosModules/florian-desktop.nix
+        ../nixosModules/dell-xps-13.nix
       ];
     }
   );

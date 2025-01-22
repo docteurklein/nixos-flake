@@ -30,6 +30,10 @@
       url = "github:jordanisaacs/homeage";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       # inputs.nixpkgs.follows = "nixpkgs";
@@ -45,6 +49,7 @@
       imports = [
         ./nixosConfigurations/florian-desktop.nix
         ./homeConfigurations/florian.nix
+        ./nixosConfigurations/dell-xps-13.nix
       ];
       systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
     };
