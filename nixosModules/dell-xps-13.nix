@@ -37,13 +37,13 @@
 
   services.xserver.videoDrivers = [ "intel" ];
   nixpkgs.config.packageOverrides = pkgs: {
-    vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
+    # vaapiIntel = pkgs.vaapiIntel.override { enableHybridCodec = true; };
   };
   boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.kernelModules = [ "kvm-intel" ];
 
   resources = {
-    ram = 16 * 1000 * 1000 * 1000;
+    ram = 8 * 1000 * 1000 * 1000;
     disk = "/dev/nvme0n1";
   };
 }

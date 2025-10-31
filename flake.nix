@@ -8,7 +8,6 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -44,7 +43,7 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, ... }:
+  outputs = inputs@{ flake-parts, nixos-generators, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
@@ -52,5 +51,24 @@
         ./nixosConfigurations/dell-xps-13.nix
       ];
       systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
+
+      perSystem = {config, pkgs, ...}: {
+        packages = {
+          liveusb = nixos-generators.nixosGenerate {
+            system = "x86_64-linux";
+            modules = [
+              ({config, pkgs, ...}: {
+                services.openssh = {
+                  enable = true;
+                };
+                users.extraUsers.root.openssh.authorizedKeys.keys = [
+                  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICYjyOT9I0Tpr72BeMjQbq7aP0Pj+octMDI5yDnn/BKy"
+                ];
+              })
+            ];
+            format = "install-iso";
+          };
+        };
+      };
     };
 }

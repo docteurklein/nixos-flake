@@ -59,11 +59,11 @@
       };
     };
 
-    programs.firefox = {
+    programs.librewolf = {
       enable = true;
       profiles.main = {
         isDefault = true;
-        extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+        extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
           ublock-origin
           darkreader
           # privacy-badger
@@ -91,7 +91,7 @@
           }];
         };
         search = {
-          default = "DuckDuckGo";
+          default = "ddg";
           force = true;
           engines = {
             "openstreetmap" = {
@@ -127,12 +127,12 @@
             };
             "NixOS Wiki" = {
               urls = [{ template = "https://nixos.wiki/index.php?search={searchTerms}"; }];
-              iconUpdateURL = "https://nixos.wiki/favicon.png";
+              icon = "https://nixos.wiki/favicon.png";
               updateInterval = 24 * 60 * 60 * 1000; # every day
               definedAliases = [ "nw!" ];
             };
-            "Bing".metaData.hidden = true;
-            "Google".metaData.alias = "g!";
+            "bing".metaData.hidden = true;
+            "google".metaData.alias = "g!";
           };
         };
       };
@@ -185,6 +185,13 @@
       settings = {
         editor = {
           completion-trigger-len = 0;
+          end-of-line-diagnostics = "hint";
+          inline-diagnostics = {
+            cursor-line = "error";
+          };
+          lsp = {
+            display-messages = true;
+          };
           completion-replace = false;
           cursorline = true;
           cursorcolumn = true;
@@ -195,6 +202,7 @@
             insert = "bar";
             select = "underline";
           };
+          continue-comments = false;
         };
         keys.insert.j = {
           j = "normal_mode"; # Maps `jj` to exit insert mode
@@ -204,11 +212,15 @@
         };
       };
       languages = {
-        language-server.phpactor = {
-          command = "phpactor";
-          args = [ "language-server" ];
+        language-server = {
+          phpactor = {
+            command = "phpactor";
+            args = [ "language-server" ];
+          };
+          rust-analyzer.config = {
+            check.command = "clippy";
+          };
         };
-        # language-server.rust-analyzer.config.check.command = "cargo clippy";
         language = [
           {
             name = "rust";
@@ -545,7 +557,6 @@
       };
     };
     home.sessionVariables = {
-      KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
       GTK_THEME = "Adwaita:dark";
     };
 

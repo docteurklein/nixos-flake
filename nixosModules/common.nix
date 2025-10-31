@@ -27,7 +27,23 @@
         device = config.resources.disk;
         content = {
           type = "gpt";
+          efiGptPartitionFirst = false;
+          # preCreateHook = "sleep 3";
           partitions = {
+            boot = {
+              priority = 1;
+              type = "EF00";
+              size = "32M";
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = null;
+              };
+              hybrid = {
+                mbrPartitionType = "0x0c";
+                mbrBootableFlag = false;
+              };
+            };
             ESP = {
               label = "boot";
               size = "500M";
@@ -41,6 +57,14 @@
                 ];
               };
             };
+            # root = {
+            #   size = "100%";
+            #   content = {
+            #     type = "filesystem";
+            #     format = "ext4";
+            #     mountpoint = "/";
+            #   };
+            # };
             luks = {
               label = "luks";
               size = "100%";
@@ -85,7 +109,7 @@
     };
 
     boot = {
-      readOnlyNixStore = false;
+      # readOnlyNixStore = false;
       kernelParams = [ "boot.shell_on_fail" ]; 
       kernelPackages = pkgs.linuxPackages_latest;
       loader = {
@@ -98,10 +122,10 @@
       initrd.availableKernelModules = [ ];
     };
 
-    systemd.extraConfig = ''
-      DefaultTimeoutStopSec=20s
-      DefaultTimeoutStartSec=20s
-    '';
+    systemd.settings.Manager = {
+      # DefaultTimeoutStartSec = 20;
+      DefaultTimeoutStopSec = 20;
+    };
 
     services.resolved.enable = true;
     # services.openvpn.servers = {
@@ -129,7 +153,10 @@
 
     i18n = {
       defaultLocale = "en_US.UTF-8";
-      supportedLocales = [ "en_US.UTF-8/UTF-8" ];
+      supportedLocales = ["en_US.UTF-8/UTF-8" "fr_FR.UTF-8/UTF-8"];
+      extraLocaleSettings = {
+        LC_MESSAGES = "fr_FR.UTF-8";
+      };
     };
 
     console = {
@@ -148,62 +175,10 @@
     };
 
     services = {
-      tempo = {
-        enable = true;
-        configFile = ../tempo.yaml;
-      };
-      grafana = {
-        enable = true;
-        settings = {
-          server = {
-            http_addr = "127.0.0.1";
-            http_port = 3001;
-            domain = "localhost";
-            protocol = "http";
-            # cert_key = "/etc/nixos/dck-home.freeddns.org-key.pem";
-            # cert_file = "/etc/nixos/dck-home.freeddns.org.pem";
-          };
-        };
-        provision.datasources.settings = {
-          apiVersion = 1;
-
-          datasources = [{
-            name = "Pyroscope";
-            type = "pyroscope";
-            url = "http://127.0.0.1:4040";
-          }];
-        };
-      };
-      prometheus = {
-        enable = true;
-        port = 9001;
-        exporters = {
-          node = {
-            enable = true;
-            port = 9002;
-          };
-        };
-        scrapeConfigs = [
-          {
-            job_name = "nixos";
-            static_configs = [{
-              targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.node.port}" ];
-            }];
-          }
-          {
-            job_name = "tempo";
-            static_configs = [{
-              targets = [ "127.0.0.1:3200" ];
-            }];
-          }
-          {
-            job_name = "pyroscope";
-            static_configs = [{
-              targets = [ "127.0.0.1:4040" ];
-            }];
-          }
-        ];
-      };
+      # ollama = {
+      #   enable = true;
+      #   acceleration = "cuda";
+      # };
       logrotate = {
         enable = true;
       };
@@ -215,7 +190,7 @@
       openssh = {
         enable = true;
         settings = {
-          X11Forwarding = true;
+          X11Forwarding = false;
           PermitRootLogin = "no";
           PasswordAuthentication = false;
         };
@@ -269,47 +244,6 @@
       };
     };
 
-    # networking.extraHosts = "127.0.0.1 api.kube";
-
-    services.kubernetes = {
-      roles = ["master" "node"];
-      masterAddress = "localhost";
-      apiserverAddress = "https://localhost:6443";
-      apiserver = {
-        advertiseAddress = "127.0.0.1";
-        securePort = 6443;
-        allowPrivileged = true;
-      };
-      addons.dns = {
-        enable = true;
-        corefile = ''
-          .:10053 {
-            log
-            errors
-            health :10054
-            kubernetes ${config.services.kubernetes.addons.dns.clusterDomain} in-addr.arpa ip6.arpa {
-              pods insecure
-              fallthrough in-addr.arpa ip6.arpa
-            }
-            prometheus :10055
-            forward . /etc/resolv.conf
-            cache 30
-            loop
-            reload
-            loadbalance
-          }
-        '';
-      };
-      kubelet.extraOpts = "--image-service-endpoint unix:///run/nix-snapshotter/nix-snapshotter.sock --fail-swap-on=false";
-    };
-
-    # services.k3s = {
-    #   enable = true;
-    #   package = pkgs.k3s;
-    #   extraFlags = "--write-kubeconfig /etc/rancher/k3s/k3s.yaml --write-kubeconfig-mode 644 --image-service-endpoint unix:///run/nix-snapshotter/nix-snapshotter.sock";
-    # };
-
-    
     services.greetd = {
       enable = true;
       settings = {
@@ -330,6 +264,10 @@
     };
 
     virtualisation = {
+      vmVariantWithDisko = {
+        # virtualisation.fileSystems."/persist".neededForBoot = true;
+        # virtualisation.fileSystems."/".encrypted.keyFile = "/tmp/secret.key";
+      };
       containerd.enable = true;
       docker = {
         enable = true;
@@ -386,19 +324,19 @@
       sessionVariables = {
       };
       variables = {
-        # KUBECONFIG = "/etc/kubernetes/cluster-admin.kubeconfig";
         EDITOR = "hx";
         LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
         LESS = "-SRXFi";
-        # WLR_NO_HARDWARE_CURSORS = "1";
         NIXPKGS_ALLOW_UNFREE = "1";
       };
       pathsToLink = [
         "/libexec"
       ];
       systemPackages = with pkgs; [
+        wl-clipboard
         xwayland-satellite
         grim
+        ripgrep
         slurp
         wireplumber
         nerdctl
@@ -412,8 +350,7 @@
         binutils
         gnutls
         gnumake
-        firefox
-        stremio
+        # stremio
         alacritty
         docker-compose
         gcc
@@ -445,11 +382,6 @@
         fd
         ripgrep
         socat
-        (google-cloud-sdk.withExtraComponents ([google-cloud-sdk.components.gke-gcloud-auth-plugin]))
-        kubectl
-        kubectx
-        kubernetes-helm
-        k9s
         xdot
         graphviz
         libclang.lib
@@ -473,6 +405,9 @@
         allowUnfree = true;
         packageOverrides = pkgs: with pkgs; {
         };
+        permittedInsecurePackages = [
+          # "qtwebengine-5.15.19"
+        ];
       };
     };
 
@@ -515,7 +450,7 @@
       autoUpgrade = {
         enable = true;
         allowReboot = false;
-        flake = "/etc/nixos";
+        flake = inputs.self.outPath;
         flags = [
           "--recreate-lock-file"
           "-L" # print build logs
