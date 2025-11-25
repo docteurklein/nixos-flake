@@ -64,6 +64,7 @@
       profiles.main = {
         isDefault = true;
         extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
+          sponsorblock
           ublock-origin
           darkreader
           # privacy-badger

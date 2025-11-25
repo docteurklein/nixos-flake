@@ -128,12 +128,14 @@
     };
 
     services.resolved.enable = true;
-    # services.openvpn.servers = {
-    #   homeVPN = {
-    #     config = "config /home/florian/proton.ovpn";
-    #     updateResolvConf = true;
-    #   };
-    # };
+
+    services.openvpn.servers = {
+      homeVPN = {
+        config = "config /home/florian/proton.ovpn";
+        updateResolvConf = true;
+        autoStart = false;
+      };
+    };
 
     # age.secrets.wireless.file = ../secrets/wireless.age;
     networking = {
@@ -141,9 +143,10 @@
       useDHCP = true;
       enableIPv6 = true;
       firewall = {
+        checkReversePath = false;
         trustedInterfaces = [ "docker0" ];
         enable = true;
-        allowedTCPPorts = [ 80 443 22 8080 8081 6443 ];
+        allowedTCPPorts = [ 80 443 22 8080 8081 6443 3000 ];
         allowedUDPPorts = [ 53 ];
         allowPing = true;
       };
@@ -333,6 +336,7 @@
         "/libexec"
       ];
       systemPackages = with pkgs; [
+        update-systemd-resolved
         wl-clipboard
         xwayland-satellite
         grim
@@ -361,24 +365,6 @@
         cachix
         tmux
         dmidecode
-        ((vim_configurable.override { }).customize {
-          name = "vim";
-          vimrcConfig = {
-            customRC = builtins.readFile ../dotfiles/vimrc;
-          };
-          vimrcConfig.packages.myVimPackage = with vimPlugins; {
-            start = [
-              jellybeans-vim
-              vim-airline
-              fugitive
-              ctrlp-vim
-              tabular
-              vim-surround
-              vim-lsp
-              fzf-vim
-            ];
-          };
-        })
         fd
         ripgrep
         socat
