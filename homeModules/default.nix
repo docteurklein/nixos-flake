@@ -92,7 +92,25 @@
                   { name = "query"; value = "{searchTerms}"; }
                 ];
               }];
+              definedAliases = [ "omap!" ];
+            };
+            "googlemaps" = {
+              urls = [{
+                template = "https://www.google.com/maps";
+                params = [
+                  { name = "q"; value = "{searchTerms}"; }
+                ];
+              }];
               definedAliases = [ "map!" ];
+            };
+            "postgres" = {
+              urls = [{
+                template = "https://www.postgresql.org/search/";
+                params = [
+                  { name = "q"; value = "{searchTerms}"; }
+                ];
+              }];
+              definedAliases = [ "ps!" ];
             };
             "Nix Packages" = {
               icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
@@ -288,15 +306,18 @@
       # ];
       input.keyboard = {
         xkb = {
-          layout  = "fr";
-          variant = "bepo";
+          layout  = "fr,fr";
+          variant = ",bepo";
           # options = "grp:alt_space_toggle";
         };
         repeat-delay = 200;
         repeat-rate = 60;
       };
+      input.touchpad = {
+        natural-scroll = true;
+      };
       outputs."edP-1" = {
-        scale = 2.0;
+        # scale = 2.0;
       };
       binds = {
         "Mod+D".action.spawn = "fuzzel";
@@ -508,8 +529,8 @@
         # a matching layout switch hotkey configured in xkb options above.
         # Having both at once on the same hotkey will break the switching,
         # since it will switch twice upon pressing the hotkey (once by xkb, once by niri).
-        # Mod+Space       { switch-layout "next"; }
-        # Mod+Shift+Space { switch-layout "prev"; }
+        "Mod+Space".action.switch-layout = "next";
+        # Mod+Shift+Space { switch-layout = "prev"; }
 
         "Print".action.screenshot = {};
         "Ctrl+Print".action.screenshot-screen = {};
