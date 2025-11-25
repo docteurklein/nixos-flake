@@ -1,7 +1,6 @@
 { config, inputs, pkgs, ... }: {
   imports = [
     ./common.nix
-    inputs.agenix.nixosModules.default
   ];
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;

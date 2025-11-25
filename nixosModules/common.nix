@@ -21,6 +21,8 @@
 
   config = {
 
+    home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
+
     disko.devices = {
       disk.${config.resources.disk} = {
         type = "disk";
@@ -137,7 +139,6 @@
       };
     };
 
-    # age.secrets.wireless.file = ../secrets/wireless.age;
     networking = {
       # nameservers = [ "1.1.1.1" "8.8.8.8" ];
       useDHCP = true;

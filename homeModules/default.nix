@@ -1,20 +1,10 @@
 { inputs, config, osConfig, lib, pkgs, ... }: {
 
-  # imports = [ inputs.homeage.homeManagerModules.homeage ];
-
   config = {
-    # age = {
-    #   # identityPaths = ["~/.ssh/id_ed25519"];
-    #   secrets.email.file = ../secrets/email.age;
-    # };
-
-    # homeage = {
-    #   identityPaths = [ "~/.ssh/id_ed25519" ];
-    #   installationType = "systemd";
-    #   file."email" = {
-    #     source = ../secrets/email.age;
-    #   };
-    # };
+    age = {
+      identityPaths = ["${config.home.homeDirectory}/.ssh/id_ed25519"];
+      secrets.email.file = ../secrets/email.age;
+    };
 
     home.stateVersion = "23.05"; # keep to lowest possible to prove BC
     programs.home-manager.enable = true;
@@ -22,9 +12,9 @@
     # programs.git.iniContent."sendemail.free".smtpUser = lib.mkForce "florian.klein";
     programs.git = {
       enable = true;
-      userName = "Florian Klein";
-      userEmail = "florian.klein@free.fr";
-      extraConfig = {
+      settings = {
+        user.name = "Florian Klein";
+        user.email = "florian.klein@free.fr";
         init.defaultBranch = "main";
       };
     };
@@ -42,7 +32,7 @@
     accounts.email.accounts.free = {
       realName = "Florian Klein";
       userName = "florian.klein";
-      passwordCommand = "cat /run/user/1000/email";
+      passwordCommand = "cat /run/user/1000/agenix/email";
       address = "florian.klein@free.fr";
       # neomutt.mailboxType = "imap";
       aerc.enable = true;
