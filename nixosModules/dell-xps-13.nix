@@ -13,23 +13,28 @@
   networking.wireless.enable = true;
   networking.wireless.userControlled.enable = true;
 
-  age.secrets.wireless.file = ../secrets/wireless.age;
+  age.secrets.wireless.file = ../secrets/wireless2.age;
   networking.wireless.secretsFile = config.age.secrets.wireless.path;
   networking.wireless.networks = {
     "Livebox-9500" = {
       psk = "ext:PSK_LIVEBOX_9500";
+    };
+    "TP-Link_013D" = {
+      pskRaw = "ext:PSK_TP_LINK_013D";
     };
   };
   
   console.keyMap = "fr";
   services.xserver.xkb.layout = "fr";
 
+  hardware.enableAllFirmware = true;
+
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
       intel-media-driver
-      vaapiIntel
-      vaapiVdpau
+      intel-vaapi-driver
+      libva-vdpau-driver
       libvdpau-va-gl
     ];
   };

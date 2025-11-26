@@ -4,6 +4,7 @@
       inherit system;
       specialArgs = { inherit inputs; };
       modules = [
+        inputs.nixos-hardware.nixosModules.dell-xps-13-9360
         inputs.agenix.nixosModules.default
         inputs.nur.modules.nixos.default
         inputs.home-manager.nixosModules.home-manager

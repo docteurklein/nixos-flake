@@ -1,4 +1,4 @@
-{ inputs, config, pkgs, lib, system, ... }: {
+{ inputs, config, pkgs, lib, ... }: {
   imports = [
     inputs.nix-snapshotter.nixosModules.default
     inputs.niri.nixosModules.niri
@@ -131,6 +131,8 @@
 
     services.resolved.enable = true;
 
+    services.fwupd.enable = true;
+
     services.openvpn.servers = {
       homeVPN = {
         config = "config /home/florian/proton.ovpn";
@@ -208,8 +210,8 @@
       };
       postgresql = {
         enable = true;
-        package = pkgs.postgresql_15;
-        extensions = with pkgs.postgresql15Packages; [
+        package = pkgs.postgresql_18;
+        extensions = with pkgs.postgresql18Packages; [
           wal2json
           pg_ivm
           pg_hint_plan
@@ -337,6 +339,7 @@
         "/libexec"
       ];
       systemPackages = with pkgs; [
+        inputs.agenix.packages.${stdenv.hostPlatform.system}.default
         update-systemd-resolved
         wl-clipboard
         xwayland-satellite
@@ -415,9 +418,10 @@
         auto-optimise-store = true;
         allow-import-from-derivation = true;
         accept-flake-config = true;
+        system-features = [ "recursive-nix" ];
       };
       extraOptions = ''
-        experimental-features = nix-command flakes impure-derivations ca-derivations
+        experimental-features = nix-command flakes impure-derivations ca-derivations recursive-nix
         keep-outputs = true
         keep-derivations = true
       '';

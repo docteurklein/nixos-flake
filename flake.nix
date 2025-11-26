@@ -43,8 +43,8 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
-        ./homeConfigurations/florian.nix
         ./nixosConfigurations/dell-xps-13.nix
+        ./homeConfigurations/florian.nix
       ];
       systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
 
