@@ -23,6 +23,10 @@
 
     home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
 
+    age.secrets.proton-auth-user-pass.file = ../secrets/proton-auth-user-pass;
+    age.secrets.proton-ca.file = ../secrets/proton-ca;
+    age.secrets.proton-tls-crypt.file = ../secrets/proton-tls-crypt;
+
     disko.devices = {
       disk.${config.resources.disk} = {
         type = "disk";
@@ -134,8 +138,41 @@
     services.fwupd.enable = true;
 
     services.openvpn.servers = {
-      homeVPN = {
-        config = "config /home/florian/proton.ovpn";
+      proton = {
+        config = ''
+          client
+          dev tun
+          proto udp
+
+          remote 185.177.124.84 4569
+          remote 185.177.124.84 80
+          remote 185.177.124.84 1194
+          remote 185.177.124.84 51820
+          remote 185.177.124.84 5060
+
+          remote-random
+          resolv-retry infinite
+          nobind
+
+          cipher AES-256-GCM
+
+          setenv CLIENT_CERT 0
+          tun-mtu 1500
+          mssfix 0
+          persist-key
+          persist-tun
+
+          reneg-sec 0
+
+          remote-cert-tls server
+          auth-user-pass
+
+          script-security 2
+
+          ca ${config.age.secrets.proton-ca.path}
+          tls-crypt ${config.age.secrets.proton-tls-crypt.path}
+        '';
+        authUserPass = config.age.secrets.proton-auth-user-pass.path;
         updateResolvConf = true;
         autoStart = false;
       };

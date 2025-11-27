@@ -23,6 +23,12 @@
           nixpkgs.overlays = [ inputs.nur.overlays.default ];
           home.username = "florian";
           home.homeDirectory = "/home/florian";
+
+          programs.niri.settings = {
+            input.keyboard.xkb = {
+              layout = "fr";
+            };
+          };
         })
       ];
     }

@@ -4,7 +4,16 @@
   ];
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
-  home-manager.users.florian = import ../homeModules/default.nix;
+  home-manager.users.florian.imports = [
+    ../homeModules/default.nix
+    ({...}: {
+      programs.niri.settings = {
+        input.keyboard.xkb = {
+          layout = "fr";
+        };
+      };
+    })
+  ];
   nix.registry = {
     nixpkgs.flake = inputs.nixpkgs;
     self.flake = inputs.self;

@@ -107,6 +107,7 @@
               urls = [{
                 template = "https://www.postgresql.org/search/";
                 params = [
+                  { name = "u"; value = "/docs/18"; }
                   { name = "q"; value = "{searchTerms}"; }
                 ];
               }];
@@ -257,13 +258,19 @@
         layer = "top";
         position = "top";
         height = 30;
-        output = [
-          "DP-3"
-        ];
+        # output = [
+        #   "DP-3"
+        # ];
         modules-right = [ "cpu" "memory" "disk" "network#dl" "network#ul" "temperature" "clock#date" "clock#time" ];
 
+        cpu = {
+          format = "cpu: {usage}% load: {load}";
+        };
+        memory = {
+          format = "cpu: {percentage}%";
+        };
         disk = {
-          format = "{percentage_used}%";
+          format = "disk used: {percentage_used}%";
         };
         "network#dl" = {
           format = "DL: {bandwidthDownBytes}";
@@ -299,17 +306,7 @@
       environment = {
           DISPLAY = ":0";
       };
-      # spawn-at-startup = [
-      #   {
-      #     command = ["waybar"];
-      #   }
-      # ];
       input.keyboard = {
-        xkb = {
-          layout  = "fr,fr";
-          variant = ",bepo";
-          # options = "grp:alt_space_toggle";
-        };
         repeat-delay = 200;
         repeat-rate = 60;
       };
