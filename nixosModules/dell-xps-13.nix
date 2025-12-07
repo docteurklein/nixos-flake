@@ -31,6 +31,9 @@
     "TP-Link_013D" = {
       pskRaw = "ext:PSK_TP_LINK_013D";
     };
+    "nixos" = {
+      pskRaw = "ext:PSK_NIXOS";
+    };
   };
   
   console.keyMap = "fr";

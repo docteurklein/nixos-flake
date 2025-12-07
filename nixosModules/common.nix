@@ -198,7 +198,7 @@
       defaultLocale = "en_US.UTF-8";
       supportedLocales = ["en_US.UTF-8/UTF-8" "fr_FR.UTF-8/UTF-8"];
       extraLocaleSettings = {
-        LC_MESSAGES = "fr_FR.UTF-8";
+        LC_MESSAGES = "en_US.UTF-8";
       };
     };
 
@@ -252,6 +252,8 @@
           wal2json
           pg_ivm
           pg_hint_plan
+          plv8
+          pgvector
         ];
         settings = let
           ram = config.resources.ram * 0.75; ## @TODO use config.systemd.services.postgresql.serviceConfig.MemoryMax
