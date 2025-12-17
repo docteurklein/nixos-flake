@@ -2,6 +2,7 @@
   imports = [
     inputs.nix-snapshotter.nixosModules.default
     inputs.niri.nixosModules.niri
+    inputs.agenix.nixosModules.default
   ];
 
   options = with lib.types; {
