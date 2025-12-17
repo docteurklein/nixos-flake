@@ -84,10 +84,10 @@
         ];
         settings = {
           # "browser.startup.homepage" = "https://nixos.org";
-          "browser.search.region" = "GB";
+          "browser.search.region" = "US";
           "browser.search.isUS" = false;
-          "distribution.searchplugins.defaultLocale" = "en-GB";
-          "general.useragent.locale" = "en-GB";
+          "distribution.searchplugins.defaultLocale" = "en-US";
+          "general.useragent.locale" = "en-US";
           "browser.bookmarks.showMobileBookmarks" = true;
           "browser.newtabpage.pinned" = [{
             title = "NixOS";
