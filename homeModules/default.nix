@@ -29,14 +29,27 @@
       extraConfig.general.unsafe-accounts-conf = true;
     };
 
+    programs.thunderbird = {
+      enable = true;
+      profiles.free = {
+        isDefault = true;
+      };
+    };
+
+    services.mako.enable = true;
+
     accounts.email.accounts.free = {
       realName = "Florian Klein";
       userName = "florian.klein";
       passwordCommand = "cat /run/user/1000/agenix/email";
       address = "florian.klein@free.fr";
+      primary = true;
       # neomutt.mailboxType = "imap";
       aerc.enable = true;
-      primary = true;
+      thunderbird = {
+        enable = true;
+        # profiles."free"];
+      };
       smtp = {
         host = "smtp.free.fr";
         port = 465;
@@ -261,7 +274,7 @@
         # output = [
         #   "DP-3"
         # ];
-        modules-right = [ "cpu" "temperature" "memory" "disk" "battery" "network" "network#dl" "network#ul" "clock#date" "clock#time" ];
+        modules-right = [ "wireplumber" "cpu" "temperature" "memory" "disk" "battery" "network" "network#dl" "network#ul" "clock#date" "clock#time" ];
 
         cpu = {
           format = "cpu: {usage}% load: {load}";
@@ -407,7 +420,8 @@
       GTK_THEME = "Adwaita:dark";
     };
 
-    # home.packages = with pkgs; [
-    # ];
+    home.packages = with pkgs; [
+      thunderbird
+    ];
   };
 }

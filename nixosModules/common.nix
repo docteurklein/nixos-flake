@@ -378,6 +378,8 @@
         "/libexec"
       ];
       systemPackages = with pkgs; [
+        wl-screenrec slurp
+        android-tools
         inputs.agenix.packages.${stdenv.hostPlatform.system}.default
         update-systemd-resolved
         wl-clipboard
