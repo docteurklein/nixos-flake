@@ -2,7 +2,10 @@
 
   config = {
     age = {
-      identityPaths = ["${config.home.homeDirectory}/.ssh/id_ed25519"];
+      identityPaths = [
+        "${config.home.homeDirectory}/.ssh/id_ed25519"
+        "${config.home.homeDirectory}/.ssh/id_ed25519.laptop"
+      ];
       secrets.email.file = ../secrets/email.age;
     };
 
