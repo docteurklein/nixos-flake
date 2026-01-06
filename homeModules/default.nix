@@ -267,6 +267,8 @@
 
     programs.alacritty.enable = true;
 
+    programs.bluetuith.enable = true;
+
     programs.waybar = {
       enable = true;
       systemd.enable = true;
@@ -274,10 +276,13 @@
         layer = "top";
         position = "top";
         height = 30;
-        # output = [
-        #   "DP-3"
-        # ];
-        modules-right = [ "wireplumber" "cpu" "temperature" "memory" "disk" "battery" "network" "network#dl" "network#ul" "clock#date" "clock#time" ];
+
+        modules-right = [ "wireplumber" "cpu" "temperature" "memory" "disk" "battery" "bluetooth" "network" "network#dl" "network#ul" "clock#date" "clock#time" ];
+
+        bluetooth = {
+          "format-connected" = " {device_alias}";
+        	"format-connected-battery" = " {device_alias} {device_battery_percentage}%";
+        };
 
         cpu = {
           format = "cpu: {usage}% load: {load}";
@@ -287,6 +292,7 @@
         };
         memory = {
           format = "memory: {percentage}%";
+          interval = 2;
         };
         disk = {
           format = "disk used: {percentage_used}%";

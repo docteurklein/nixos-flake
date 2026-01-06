@@ -20,7 +20,7 @@
   };
   networking.hostName = "dell-xps-13";
   networking.wireless.enable = true;
-  networking.wireless.userControlled.enable = true;
+  networking.wireless.userControlled = true;
 
   age.secrets.wireless.file = ../secrets/wireless2.age;
   networking.wireless.secretsFile = config.age.secrets.wireless.path;
@@ -29,10 +29,10 @@
       psk = "ext:PSK_LIVEBOX_9500";
     };
     "TP-Link_013D" = {
-      pskRaw = "ext:PSK_TP_LINK_013D";
+      psk = "ext:PSK_TP_LINK_013D";
     };
     "nixos" = {
-      pskRaw = "ext:PSK_NIXOS";
+      psk = "ext:PSK_NIXOS";
     };
   };
   
@@ -49,6 +49,20 @@
       libva-vdpau-driver
       libvdpau-va-gl
     ];
+  };
+
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        Experimental = true;
+        FastConnectable = true;
+      };
+      Policy = {
+        AutoEnable = true;
+      };
+    };
   };
 
   services.xserver.videoDrivers = [ "intel" ];

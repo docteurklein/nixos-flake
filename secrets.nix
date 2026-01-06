@@ -6,7 +6,7 @@ let keys = [
   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMQ8qx/fEfK+uEM2x1kEET1FkWZEjIYmdENBnqICJ+l2"
 ];
 in {
-  "secrets/wireless.age".publicKeys = keys;
+  # "secrets/wireless.age".publicKeys = keys;
   "secrets/wireless2.age".publicKeys = keys;
   "secrets/email.age".publicKeys = keys;
   "secrets/proton-auth-user-pass".publicKeys = keys;

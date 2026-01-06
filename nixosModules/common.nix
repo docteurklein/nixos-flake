@@ -127,6 +127,7 @@
       kernelModules = [ "dm-snapshot" ];
       initrd.kernelModules = [ "dm-snapshot" ];
       initrd.availableKernelModules = [ ];
+      enableContainers = true;
     };
 
     systemd.settings.Manager = {
@@ -255,6 +256,7 @@
           pg_hint_plan
           plv8
           pgvector
+          pgsql-http
         ];
         settings = let
           ram = config.resources.ram * 0.75; ## @TODO use config.systemd.services.postgresql.serviceConfig.MemoryMax
@@ -270,10 +272,10 @@
           #"auto_explain.log_min_duration" = 0;
           shared_preload_libraries = "auto_explain,pg_hint_plan,pg_stat_statements";
           max_connections = 100;
-          # shared_buffers = "${toString (builtins.ceil (ram / 4) / 1000 / 1000)} GB"; # 1/4th of RAM
-          # work_mem =  builtins.ceil ((ram / max_connections) / 4); # 1/4th of RAM / max_connections
-          # # effective_cache_size = builtins.ceil(ram * 0.75); # 75% of total RAM
-          # effective_cache_size = "${toString (builtins.ceil (ram * 0.75) / 1000 / 1000)} GB"; # 1/4th of RAM
+          shared_buffers = "${toString (builtins.ceil (ram / 4) / 1000 / 1000)} GB"; # 1/4th of RAM
+          work_mem =  builtins.ceil ((ram / max_connections) / 4); # 1/4th of RAM / max_connections
+          # effective_cache_size = builtins.ceil(ram * 0.75); # 75% of total RAM
+          effective_cache_size = "${toString (builtins.ceil (ram * 0.75) / 1000 / 1000)} GB"; # 1/4th of RAM
           maintenance_work_mem = "1GB";
           checkpoint_completion_target = 0.9;
           wal_buffers = "16MB";
