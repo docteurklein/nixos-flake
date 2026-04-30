@@ -39,19 +39,20 @@
     };
   };
 
-  outputs = inputs@{ flake-parts, nixos-generators, ... }:
+  outputs = inputs@{ self, flake-parts, nixos-generators, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
         ./nixosConfigurations/dell-xps-13.nix
+        # ./nixosConfigurations/phone.nix
         ./homeConfigurations/florian.nix
       ];
-      systems = [ "x86_64-linux" ]; #"x86_64-darwin" ];
+      systems = [ "x86_64-linux" "aarch64-linux" ];
 
-      perSystem = {config, pkgs, ...}: {
+      perSystem = { config, pkgs, system, ...}: {
         packages = {
           liveusb = nixos-generators.nixosGenerate {
-            system = "x86_64-linux";
+            inherit system;
             modules = [
               ({config, pkgs, ...}: {
                 services.openssh = {
@@ -64,6 +65,7 @@
             ];
             format = "install-iso";
           };
+          # phone-disk-images = self.nixosConfigurations.phone.config.mobile.outputs.android.android-fastboot-images;
         };
       };
     };

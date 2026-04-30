@@ -39,7 +39,12 @@
       };
     };
 
-    services.mako.enable = true;
+    services.mako = {
+      enable = true;
+      settings = {
+        default-timeout = "5000";
+      };
+    };
 
     accounts.email.accounts.free = {
       realName = "Florian Klein";
@@ -210,6 +215,9 @@
       enable = true;
       settings = {
         editor = {
+          file-picker = {
+            hidden = false;
+          };
           completion-trigger-len = 0;
           end-of-line-diagnostics = "hint";
           inline-diagnostics = {
@@ -246,6 +254,11 @@
           rust-analyzer.config = {
             check.command = "clippy";
           };
+          pgtools = {
+            command = "postgrestools";
+            args = ["lsp-proxy"];
+            timeout = 10;
+          };
         };
         language = [
           {
@@ -255,6 +268,12 @@
           {
             name = "php";
             language-servers = [ "phpactor" ];
+          }
+          {
+            name = "sql";
+            language-servers = [ "pgtools" ];
+            roots = ["postgrestools.jsonc" ".git"];
+            file-types = ["sql"];
           }
         ];
       };
@@ -342,7 +361,6 @@
         natural-scroll = true;
       };
       outputs."edP-1" = {
-        # scale = 2.0;
       };
       binds = {
         "Mod+D".action.spawn = "fuzzel";

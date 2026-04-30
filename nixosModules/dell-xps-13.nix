@@ -22,17 +22,23 @@
   networking.wireless.enable = true;
   networking.wireless.userControlled = true;
 
-  age.secrets.wireless.file = ../secrets/wireless2.age;
+  age.secrets.wireless = {
+    file = ../secrets/wireless2.age;
+    owner = "wpa_supplicant";
+  };
   networking.wireless.secretsFile = config.age.secrets.wireless.path;
   networking.wireless.networks = {
     "Livebox-9500" = {
-      psk = "ext:PSK_LIVEBOX_9500";
+      pskRaw = "ext:PSK_LIVEBOX_9500";
+      priority = 3;
     };
     "TP-Link_013D" = {
-      psk = "ext:PSK_TP_LINK_013D";
+      pskRaw = "ext:PSK_TP_LINK_013D";
+      priority = 3;
     };
     "nixos" = {
       psk = "ext:PSK_NIXOS";
+      priority = 1;
     };
   };
   

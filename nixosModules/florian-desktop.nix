@@ -1,4 +1,4 @@
-{ config, inputs, ... }: {
+{ config, inputs, lib, ... }: {
   imports = [
     ./common.nix
   ];
@@ -26,7 +26,7 @@
 
   hardware.graphics = {
     enable = true;
-    enable32Bit = true;
+    # enable32Bit = lib.mkForce false;
   };
   services.pulseaudio.support32Bit = config.hardware.pulseaudio.enable;
 

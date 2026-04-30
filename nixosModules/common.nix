@@ -116,8 +116,15 @@
     };
 
     boot = {
+      extraSystemdUnitPaths = [ "/etc/systemd-mutable/system" ];
+
       # readOnlyNixStore = false;
-      kernelParams = [ "boot.shell_on_fail" ]; 
+      kernelParams = [
+        "boot.shell_on_fail"
+        "logo.nologo"
+        # "preempt=full"
+        "transparent_hugepage=always"
+      ];
       kernelPackages = pkgs.linuxPackages_latest;
       loader = {
         systemd-boot.enable = true;
@@ -128,6 +135,7 @@
       initrd.kernelModules = [ "dm-snapshot" ];
       initrd.availableKernelModules = [ ];
       enableContainers = true;
+      binfmt.emulatedSystems = [ "aarch64-linux" "riscv64-linux" ];
     };
 
     systemd.settings.Manager = {
@@ -136,6 +144,15 @@
     };
 
     services.resolved.enable = true;
+
+    services.nohang = {
+      enable = true;
+      # configPath = pkgs.writeText "nohang.conf" 
+      #   ''
+
+      #   ''
+      # ;
+    };
 
     services.fwupd.enable = true;
 
@@ -272,10 +289,10 @@
           #"auto_explain.log_min_duration" = 0;
           shared_preload_libraries = "auto_explain,pg_hint_plan,pg_stat_statements";
           max_connections = 100;
-          shared_buffers = "${toString (builtins.ceil (ram / 4) / 1000 / 1000)} GB"; # 1/4th of RAM
-          work_mem =  builtins.ceil ((ram / max_connections) / 4); # 1/4th of RAM / max_connections
+          # shared_buffers = "${toString (builtins.ceil (ram / 4) / 1000 / 1000)} GB"; # 1/4th of RAM
+          # work_mem = builtins.ceil ((ram / max_connections) / 4); # 1/4th of RAM / max_connections
           # effective_cache_size = builtins.ceil(ram * 0.75); # 75% of total RAM
-          effective_cache_size = "${toString (builtins.ceil (ram * 0.75) / 1000 / 1000)} GB"; # 1/4th of RAM
+          # effective_cache_size = "${toString (builtins.ceil (ram * 0.75) / 1000 / 1000)} GB"; # 1/4th of RAM
           maintenance_work_mem = "1GB";
           checkpoint_completion_target = 0.9;
           wal_buffers = "16MB";
@@ -362,11 +379,13 @@
     };
     programs = {
       niri.enable = true;
-      steam.enable = true;
+      # steam.enable = true;
       ssh.startAgent = false;
       fish.enable = true;
     };
     programs.dconf.enable = true;
+
+    services.nixseparatedebuginfod2.enable = true;
 
     environment = {
       sessionVariables = {
@@ -381,6 +400,7 @@
         "/libexec"
       ];
       systemPackages = with pkgs; [
+        postgres-language-server
         wl-screenrec slurp
         android-tools
         inputs.agenix.packages.${stdenv.hostPlatform.system}.default
@@ -463,6 +483,7 @@
         allow-import-from-derivation = true;
         accept-flake-config = true;
         system-features = [ "recursive-nix" ];
+        extra-platforms = config.boot.binfmt.emulatedSystems;
       };
       extraOptions = ''
         experimental-features = nix-command flakes impure-derivations ca-derivations recursive-nix
@@ -485,10 +506,10 @@
       autoUpgrade = {
         enable = true;
         allowReboot = false;
-        flake = inputs.self.outPath;
+        flake = "/etc/nixos-flake";
         flags = [
-          "--recreate-lock-file"
-          "-L" # print build logs
+          "--print-build-logs"
+          "--commit-lock-file"
         ];
         dates = "weekly";
       };
