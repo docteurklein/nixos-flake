@@ -3,6 +3,7 @@
     inputs.nix-snapshotter.nixosModules.default
     inputs.niri.nixosModules.niri
     inputs.agenix.nixosModules.default
+    inputs.usb-phone-lock.nixosModules.default
   ];
 
   options = with lib.types; {
@@ -23,6 +24,29 @@
   config = {
 
     home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
+
+    security.usbPhoneLock = {
+      enable = true;
+      user = "florian";
+
+      # Multiple phones - any one unlocks
+      phones = [
+        { id = "2a70:9011"; type = "android"; name = "one plus"; }
+      ];
+
+      # Grace period - seconds before locking after disconnect
+      gracePeriod = 5;
+
+      # Periodic check - verify phone unlocked every N seconds
+      periodicCheck = 300;  # 5 minutes
+
+      # PAM integration for password-less unlock
+      pamUnlock = true;
+      lockServices = [ "swaylock" ];
+
+      # Lock after resume if phone not present/unlocked
+      lockOnSuspend = true;
+    };
 
     age.secrets.proton-auth-user-pass.file = ../secrets/proton-auth-user-pass;
     age.secrets.proton-ca.file = ../secrets/proton-ca;
@@ -81,7 +105,6 @@
                 extraOpenArgs = [ ];
                 settings = {
                   allowDiscards = true;
-                  fallbackToPassword = true;
                 };
                 passwordFile = "/tmp/secret.key";
                 content = {

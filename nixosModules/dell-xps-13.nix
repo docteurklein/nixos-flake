@@ -5,6 +5,9 @@
   home-manager.useGlobalPkgs = true;
   home-manager.useUserPackages = true;
   home-manager.users.florian.imports = [
+    
+    inputs.usb-phone-lock.homeManagerModules.default
+
     ../homeModules/default.nix
     ({...}: {
       programs.niri.settings = {

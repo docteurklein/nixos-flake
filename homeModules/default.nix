@@ -1,4 +1,4 @@
-{ inputs, config, osConfig, lib, pkgs, ... }: {
+{ inputs, config, lib, pkgs, ... }: {
 
   config = {
     age = {
@@ -12,9 +12,22 @@
     home.stateVersion = "23.05"; # keep to lowest possible to prove BC
     programs.home-manager.enable = true;
 
+    services.usbPhoneLock = {
+      enable = false;
+
+      phones = [
+        { id = "2a70:9011"; type = "android"; name = "one plus"; }
+      ];
+
+      gracePeriod = 5;
+      notifications = true;  # Desktop notifications
+      periodicCheck = 300;
+    };
+
     # programs.git.iniContent."sendemail.free".smtpUser = lib.mkForce "florian.klein";
     programs.git = {
       enable = true;
+      signing.format = null;
       settings = {
         user.name = "Florian Klein";
         user.email = "florian.klein@free.fr";
@@ -349,6 +362,8 @@
       };
     };
 
+    programs.swaylock.enable = true;
+
     programs.niri.settings = {
       environment = {
           DISPLAY = ":0";
@@ -430,6 +445,7 @@
         '';
       };
 
+      gtk4.theme = null;
       gtk4.extraConfig = {
         Settings = ''
           gtk-application-prefer-dark-theme=1

@@ -37,9 +37,13 @@
       url = "github:pdtpartners/nix-snapshotter";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    usb-phone-lock = {
+      url = "github:robcohen/usb-phone-lock";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs@{ self, flake-parts, nixos-generators, ... }:
+  outputs = inputs@{ self, flake-parts, nixos-generators, usb-phone-lock, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nixosConfigurations/florian-desktop.nix
