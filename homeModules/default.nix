@@ -145,7 +145,7 @@
                   { name = "q"; value = "{searchTerms}"; }
                 ];
               }];
-              definedAliases = [ "ps!" ];
+              definedAliases = [ "pg!" ];
             };
             "Nix Packages" = {
               icon = "${pkgs.nixos-icons}/share/icons/hicolor/scalable/apps/nix-snowflake.svg";
@@ -189,7 +189,7 @@
         ll = "ls -Alh";
         s = "sudo systemctl";
         us = "systemctl --user";
-        j = "sudo journalctl";
+        j = "journalctl --system";
         uj = "journalctl --user";
         d = "docker";
         dc = "docker compose";
@@ -334,9 +334,11 @@
         };
         "network#dl" = {
           format = "DL: {bandwidthDownBytes}";
+          interval = 2;
         };
         "network#ul" = {
           format = "UL: {bandwidthUpBytes}";
+          interval = 2;
         };
         "clock#date" = {
           format = "{:%a %d/%m}";

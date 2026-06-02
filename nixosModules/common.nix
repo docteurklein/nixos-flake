@@ -26,7 +26,7 @@
     home-manager.sharedModules = [ inputs.agenix.homeManagerModules.default ];
 
     security.usbPhoneLock = {
-      enable = true;
+      enable = false;
       user = "florian";
 
       # Multiple phones - any one unlocks
@@ -294,7 +294,7 @@
           wal2json
           pg_ivm
           pg_hint_plan
-          plv8
+          # plv8
           pgvector
           pgsql-http
         ];
