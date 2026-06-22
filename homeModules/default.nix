@@ -411,8 +411,8 @@
 
         "Mod+Tab".action.focus-workspace-previous = {};
 
-        "Mod+Comma".action.consume-window-into-column = {};
-        "Mod+Shift+Comma".action.expel-window-from-column = {};
+        # "Mod+Comma".action.consume-window-into-column = {};
+        # "Mod+Shift+Comma".action.expel-window-from-column = {};
 
         "Mod+R".action.switch-preset-column-width = {};
         "Mod+F".action.maximize-column = {};

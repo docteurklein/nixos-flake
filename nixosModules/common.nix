@@ -220,6 +220,53 @@
       };
     };
 
+    services.grafana = {
+      enable = true;
+      settings = {
+        server = {
+          http_addr = "127.0.0.1";
+          http_port = 3001;
+          domain = "localhost";
+          protocol = "http";
+        };
+        security = {
+          secret_key = "test";
+        };
+      };
+      provision = {
+        datasources.settings = {
+          apiVersion = 1;
+          datasources = [
+            {
+              name = "prometheus";
+              type = "prometheus";
+              url = "http://127.0.0.1:9001";
+            }
+          ];
+        };
+      };
+    };
+
+    services.prometheus = {
+      enable = true;
+      port = 9001;
+      exporters = {
+        node = {
+          enable = true;
+          port = 9002;
+          enabledCollectors = ["systemd"];
+        };
+      };
+      scrapeConfigs = [
+        {
+          job_name = "nixos";
+          static_configs = [{
+            targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.node.port}" ];
+          }];
+        }
+      ];
+    };
+
     networking = {
       # nameservers = [ "1.1.1.1" "8.8.8.8" ];
       useDHCP = true;
