@@ -256,6 +256,9 @@
           port = 9002;
           enabledCollectors = ["systemd"];
         };
+        postgres = {
+          enable = true;
+        };
       };
       scrapeConfigs = [
         {
@@ -268,6 +271,11 @@
     };
 
     networking = {
+      bridges.br0 = {};
+      interfaces.br0.ipv4.addresses = [{
+        address = "10.250.0.0";
+        prefixLength = 16;
+      }];
       # nameservers = [ "1.1.1.1" "8.8.8.8" ];
       useDHCP = true;
       enableIPv6 = true;
@@ -314,11 +322,11 @@
       logrotate = {
         enable = true;
       };
-      journald.extraConfig = ''
-        MaxRetentionSec=7day
-        RateLimitInterval=10s
-        RateLimitBurst=100000
-      '';
+      journald.settings.Journal = {
+        MaxRetentionSec = "7day";
+        RateLimitInterval= "10s";
+        RateLimitBurst = 100000;
+      };
       openssh = {
         enable = true;
         settings = {
@@ -448,7 +456,9 @@
       man.enable = false;
     };
     programs = {
-      niri.enable = true;
+      niri = {
+        enable = true;
+      };
       # steam.enable = true;
       ssh.startAgent = false;
       fish.enable = true;

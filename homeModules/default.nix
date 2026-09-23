@@ -220,7 +220,7 @@
     programs.tmux = {
       enable = true;
       keyMode = "vi";
-      historyLimit = 50000;
+      historyLimit = 500000;
       extraConfig = builtins.readFile ../dotfiles/tmux.conf;
     };
 

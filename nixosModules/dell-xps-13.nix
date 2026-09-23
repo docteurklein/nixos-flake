@@ -39,8 +39,8 @@
       pskRaw = "ext:PSK_TP_LINK_013D";
       priority = 3;
     };
-    "nixos" = {
-      psk = "ext:PSK_NIXOS";
+    "V2028" = {
+      pskRaw = "ext:PSK_HOTSPOT";
       priority = 1;
     };
   };
